@@ -139,17 +139,17 @@ export function AutomationManager(props: {
     selectFilter(automationId)
     showList('runs')
   }
+  const targetOf = (selected: MobileAutomationRow) => ({
+    id: selected.automation.id,
+    expectedOwner: toAutomationOwnerPrecondition(selected.item.selector)
+  })
   function toggle(selected: MobileAutomationRow, enabled: boolean) {
     void catalog.perform(
       async (client) =>
         automationUpdateWrite.interpret(
           await automationUpdateWrite.request(
             client,
-            {
-              id: selected.automation.id,
-              updates: { enabled },
-              expectedOwner: toAutomationOwnerPrecondition(selected.item.selector)
-            },
+            { ...targetOf(selected), updates: { enabled } },
             ACTION_OPTIONS
           )
         ),
@@ -169,14 +169,7 @@ export function AutomationManager(props: {
     void catalog.perform(
       async (client) =>
         automationShowRead.interpret(
-          await automationShowRead.request(
-            client,
-            {
-              id: selected.automation.id,
-              expectedOwner: toAutomationOwnerPrecondition(selected.item.selector)
-            },
-            ACTION_OPTIONS
-          )
+          await automationShowRead.request(client, targetOf(selected), ACTION_OPTIONS)
         ),
       ({ automation }) =>
         openEditor({
@@ -190,14 +183,7 @@ export function AutomationManager(props: {
     await catalog.perform(
       async (client) =>
         automationRunWrite.interpret(
-          await automationRunWrite.request(
-            client,
-            {
-              id: selected.automation.id,
-              expectedOwner: toAutomationOwnerPrecondition(selected.item.selector)
-            },
-            ACTION_OPTIONS
-          )
+          await automationRunWrite.request(client, targetOf(selected), ACTION_OPTIONS)
         ),
       ({ run }) => {
         accepted = true
@@ -218,14 +204,7 @@ export function AutomationManager(props: {
     void catalog.perform(
       async (client) =>
         automationDeleteWrite.interpret(
-          await automationDeleteWrite.request(
-            client,
-            {
-              id: selected.automation.id,
-              expectedOwner: toAutomationOwnerPrecondition(selected.item.selector)
-            },
-            ACTION_OPTIONS
-          )
+          await automationDeleteWrite.request(client, targetOf(selected), ACTION_OPTIONS)
         ),
       () => {
         catalog.setRows((previous) =>
