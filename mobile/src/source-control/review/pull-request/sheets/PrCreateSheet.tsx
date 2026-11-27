@@ -1,9 +1,9 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { ActivityIndicator, Pressable, Text, View } from 'react-native'
 import { ChevronsUpDown, Sparkles } from 'lucide-react-native'
-import { colors, pressedStyle, spacing } from '../../../../theme/mobile-theme'
-import { themedStyleSheet } from '../../../../theme/themed-styles'
-import { useMobileColorScheme } from '../../../../theme/use-mobile-color-scheme'
+import { pressedStyle, spacing } from '../../../../theme/mobile-theme'
+import { themedStyleSheet, useThemedStyles } from '../../../../theme/themed-styles'
+import { useMobileColors } from '../../../../theme/use-mobile-color-scheme'
 import { useMobileTranslation } from '../../../../i18n/use-mobile-translation'
 import { triggerError, triggerSuccess } from '../../../../platform/haptics/haptics'
 import { SheetHeader } from '../../../../components/nav-bar/SheetHeader'
@@ -34,7 +34,7 @@ import {
 import { useMobileCommitFailureRecovery } from '../../../commits/use-mobile-commit-failure-recovery'
 import { MobileCommitFailurePanel } from '../../../commits/MobileCommitFailurePanel'
 import type { MobilePrTab } from '../use-mobile-pr-tab'
-import { prSheetStyles as sheetStyles } from '../pr-tab-styles'
+import { prSheetStylesSheet } from '../pr-tab-styles'
 import { PrBasePicker } from './PrBasePicker'
 import { FieldTextInput } from '../../../../components/composer-input/FieldTextInput'
 import { workspaceDraftRowKey } from '../../../../drafts/durable-draft-rows'
@@ -72,7 +72,9 @@ function useKeptCreateFields(key: string | null): Fields | null {
 
 // One Create flow for every entry point and all five providers: seed from commits, push if needed, land on the PR tab.
 export function PrCreateSheet({ tab }: { tab: MobilePrTab }) {
-  useMobileColorScheme()
+  const sheetStyles = useThemedStyles(prSheetStylesSheet)
+  const colors = useMobileColors()
+  const styles = useThemedStyles(stylesSheet)
   const t = useMobileTranslation()
   const { client, hostId, worktreeId, gitBranch } = tab
   const executionHost = useWorkspaceExecutionHost()
@@ -140,7 +142,7 @@ export function PrCreateSheet({ tab }: { tab: MobilePrTab }) {
     }
   }, [client, gitBranch, worktreeId])
 
-  const copy = hostedReviewCopy(fields?.provider)
+  const copy = hostedReviewCopy(fields?.provider, t)
   const title = t('pullRequest.createSheet.title', 'Create {{reviewLabel}}', {
     reviewLabel: copy.reviewLabel
   })
@@ -402,7 +404,7 @@ export function PrCreateSheet({ tab }: { tab: MobilePrTab }) {
   )
 }
 
-const styles = themedStyleSheet(() => ({
+const stylesSheet = themedStyleSheet((colors) => ({
   loading: { padding: spacing.xl, alignItems: 'center' },
   field: { gap: 6 },
   label: { fontSize: 13, fontWeight: '500', color: colors.textSecondary },

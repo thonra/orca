@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native'
-import { colors, radii, spacing } from '../theme/mobile-theme'
+import { radii, spacing } from '../theme/mobile-theme'
 import { themedStyleSheet } from '../theme/themed-styles'
 
 // Text starts after the status column, so separators inset to it.
@@ -13,7 +13,7 @@ const TILE_DOT_SIZE = 10
 const TILE_DOT_RING = 2
 
 /** Home's grouped lists: one inset group per section, a status column, a title and a wrapping detail line. */
-export const homeListStyles = themedStyleSheet(() => ({
+export const homeListStylesSheet = themedStyleSheet((colors) => ({
   sectionHeadingRow: {
     flexDirection: 'row',
     alignItems: 'baseline',

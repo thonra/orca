@@ -1,5 +1,6 @@
-import { useMobileTranslation } from '../i18n/use-mobile-translation'
-import { useMobileColorScheme } from '../theme/use-mobile-color-scheme'
+import { intlLocaleFor } from '../i18n/ui-intl-locale'
+import { useMobileTranslation, useMobileUiLocale } from '../i18n/use-mobile-translation'
+import { useMobileColors } from '../theme/use-mobile-color-scheme'
 import {
   automationRunEventSourceKey,
   sayAutomationRunEnglish
@@ -8,7 +9,6 @@ import { History } from 'lucide-react-native'
 import { MobileLoadErrorState, MobileStateView } from '../components/feedback/MobileStateView'
 import { ListGroup, ListRow, SectionHeader } from '../components/list/ListGroup'
 import { SettingsEmptyRow, SettingsNote, SettingsSection } from '../settings/settings-screen-frame'
-import { colors } from '../theme/mobile-theme'
 import type { MobileAutomationRow, MobileAutomationRun } from './automation-reply-schema'
 import { AutomationChoiceRow } from './AutomationControls'
 import type { AutomationRunObservation } from './use-automation-runs'
@@ -20,9 +20,10 @@ import {
 
 function AutomationRunRow(props: { run: MobileAutomationRun; onPress: () => void }) {
   const t = useMobileTranslation()
+  const intlLocale = intlLocaleFor(useMobileUiLocale())
   const { run } = props
-  const status = automationRunStatusLabel(run.status)
-  const date = automationDate(run.scheduledFor)
+  const status = automationRunStatusLabel(run.status, t)
+  const date = automationDate(run.scheduledFor, t, intlLocale)
   const trigger =
     run.trigger === 'manual'
       ? t('automations.mobile.runNow', 'Run now')
@@ -52,7 +53,7 @@ export function AutomationRecentRuns(props: {
   onSelect: (run: MobileAutomationRun) => void
 }) {
   const t = useMobileTranslation()
-  useMobileColorScheme()
+  const colors = useMobileColors()
   const { history } = props
   const recent = history.runs.slice(0, 3)
   return (
@@ -96,7 +97,6 @@ export function AutomationRunsView(props: {
   onSelect: (run: MobileAutomationRun) => void
 }) {
   const t = useMobileTranslation()
-  useMobileColorScheme()
   const { history } = props
   const visible = history.runs.filter((run) => runMatchesOutcome(run, props.outcome))
   const loadMore =

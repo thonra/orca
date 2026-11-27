@@ -1,12 +1,12 @@
+import { intlLocaleFor } from '../i18n/ui-intl-locale'
 import { automationOrphanIssueText } from './automation-orphan-issue-copy'
-import { useMobileTranslation } from '../i18n/use-mobile-translation'
-import { useMobileColorScheme } from '../theme/use-mobile-color-scheme'
+import { useMobileTranslation, useMobileUiLocale } from '../i18n/use-mobile-translation'
+import { useMobileColors } from '../theme/use-mobile-color-scheme'
 import { CalendarClock } from 'lucide-react-native'
 import { MobileSwitch } from '../components/controls/MobileSwitch'
 import { MobileStateView } from '../components/feedback/MobileStateView'
 import { MobileAgentIcon } from '../components/icons/MobileAgentIcon'
 import { ListGroup, ListRow } from '../components/list/ListGroup'
-import { colors } from '../theme/mobile-theme'
 import { automationScheduleText } from './automation-schedule-label'
 import type { MobileAutomationRow } from './automation-reply-schema'
 
@@ -20,7 +20,8 @@ export function AutomationList(props: {
   onToggle: (row: MobileAutomationRow, enabled: boolean) => void
 }) {
   const t = useMobileTranslation()
-  useMobileColorScheme()
+  const intlLocale = intlLocaleFor(useMobileUiLocale())
+  const colors = useMobileColors()
   if (!props.loaded) {
     return (
       <MobileStateView
@@ -60,7 +61,7 @@ export function AutomationList(props: {
         const project = props.projectName(automation)
         const subtitle = orphan
           ? automationOrphanIssueText(orphan)
-          : [automationScheduleText(automation), project].filter(Boolean).join(' · ')
+          : [automationScheduleText(automation, t, intlLocale), project].filter(Boolean).join(' · ')
         return (
           <ListRow
             key={automation.id}

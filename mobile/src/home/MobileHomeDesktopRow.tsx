@@ -10,13 +10,13 @@ import { useHostDisplay } from '../host-descriptors/use-host-display'
 import type { MobileConnectionPath } from '../transport/connection/stable-logical-rpc-client'
 import type { ConnectionState } from '../transport/connection/connection-state'
 import type { HostCatalogEntry, HostProfile } from '../host-catalog/host-profile'
-import { colors } from '../theme/mobile-theme'
-import { useMobileColorScheme } from '../theme/use-mobile-color-scheme'
+import { useMobileColors } from '../theme/use-mobile-color-scheme'
 import {
   homeHostWorktreeSummary,
   type HostWorktreeInfo
 } from '../worktree/catalog/home-worktree-info'
-import { homeListStyles as styles } from './home-list-styles'
+import { homeListStylesSheet } from './home-list-styles'
+import { useThemedStyles } from '../theme/themed-styles'
 
 const MACHINE_GLYPHS: Record<'laptop' | 'desktop' | 'server', LucideIcon> = {
   laptop: Laptop,
@@ -73,8 +73,9 @@ export function MobileHomeDesktopRow(props: {
   onPress: () => void
   onLongPress: () => void
 }) {
+  const styles = useThemedStyles(homeListStylesSheet)
   const t = useMobileTranslation()
-  useMobileColorScheme()
+  const colors = useMobileColors()
   const credentialUnavailable = props.credentialStatus === 'temporarily-unavailable'
   const credentialMissing = props.credentialStatus === 'missing'
   const connected = props.state === 'connected' && !credentialUnavailable && !credentialMissing
@@ -82,13 +83,13 @@ export function MobileHomeDesktopRow(props: {
     ? t('components.hostCard.pairingInvalid', 'Pairing invalid')
     : credentialUnavailable
       ? t('components.hostCard.pairingTemporarilyUnavailable', 'Pairing temporarily unavailable')
-      : verdictDisplayLabel(props.verdict)
+      : verdictDisplayLabel(props.verdict, t)
   const statusVerdict: ConnectionVerdict = credentialMissing
     ? { kind: 'auth-failed', label: statusLabel }
     : credentialUnavailable
       ? { kind: 'warning', label: statusLabel }
       : props.verdict
-  const dotColor = statusDotColor(props.state, statusVerdict)
+  const dotColor = statusDotColor(colors, props.state, statusVerdict)
   // The words take the dot's severity, so an amber warning never reads red.
   const statusColor = PROBLEM_VERDICTS.has(statusVerdict.kind) ? dotColor : colors.textMuted
   const worktreeSummary = worktreeSummaries(props.worktreeInfo, t)
@@ -124,7 +125,7 @@ export function MobileHomeDesktopRow(props: {
     t('components.hostCard.openHost', 'Open {{title}}', { title: display.title }),
     display.machineLine ?? display.descriptorLine,
     statusLabel,
-    connected ? mobileConnectionPathAccessibilityLabel(props.path) : null,
+    connected ? mobileConnectionPathAccessibilityLabel(props.path, t) : null,
     connected ? worktreeSummary.accessibility : null,
     needsYouLabel,
     ...details

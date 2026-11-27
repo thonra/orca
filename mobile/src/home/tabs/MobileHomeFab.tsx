@@ -3,9 +3,9 @@ import { useEffect, useState } from 'react'
 import { Pressable, Text, View } from 'react-native'
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated'
 import { useReducedMotionEnabled } from '../../platform/accessibility/use-reduced-motion'
-import { colors, radii, spacing } from '../../theme/mobile-theme'
-import { themedStyleSheet } from '../../theme/themed-styles'
-import { useMobileColorScheme } from '../../theme/use-mobile-color-scheme'
+import { radii, spacing } from '../../theme/mobile-theme'
+import { themedStyleSheet, useThemedStyles } from '../../theme/themed-styles'
+import { useMobileColors } from '../../theme/use-mobile-color-scheme'
 import { HOME_EASE_OUT } from './home-tabs'
 
 const SIZE = 56
@@ -23,7 +23,8 @@ export function MobileHomeFab(props: {
   bottom: number
   onPress: () => void
 }) {
-  useMobileColorScheme()
+  const colors = useMobileColors()
+  const styles = useThemedStyles(stylesSheet)
   const reducedMotion = useReducedMotionEnabled() === true
   const shown = useSharedValue(props.visible ? 1 : 0)
   const [pressed, setPressed] = useState(false)
@@ -86,7 +87,7 @@ export function MobileHomeFab(props: {
   )
 }
 
-const styles = themedStyleSheet(() => ({
+const stylesSheet = themedStyleSheet((colors) => ({
   anchor: {
     position: 'absolute',
     right: 18,

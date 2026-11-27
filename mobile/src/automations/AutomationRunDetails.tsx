@@ -1,5 +1,5 @@
-import { useMobileTranslation } from '../i18n/use-mobile-translation'
-import { useMobileColorScheme } from '../theme/use-mobile-color-scheme'
+import { intlLocaleFor } from '../i18n/ui-intl-locale'
+import { useMobileTranslation, useMobileUiLocale } from '../i18n/use-mobile-translation'
 import {
   automationRunEventSourceKey,
   sayAutomationRunEnglish
@@ -22,7 +22,8 @@ import { canOpenAutomationRunAgent } from './automation-run-agent'
 import type { MobileAutomationRun } from './automation-reply-schema'
 import type { AutomationRunObservation } from './use-automation-runs'
 import { useFullAutomationRun } from './use-full-automation-run'
-import { automationStyles as styles } from './automation-styles'
+import { automationStylesSheet } from './automation-styles'
+import { useThemedStyles } from '../theme/themed-styles'
 
 export function AutomationRunDetails(props: {
   run: MobileAutomationRun
@@ -33,8 +34,9 @@ export function AutomationRunDetails(props: {
   history: AutomationRunObservation
   onBack: () => void
 }) {
+  const styles = useThemedStyles(automationStylesSheet)
   const t = useMobileTranslation()
-  useMobileColorScheme()
+  const intlLocale = intlLocaleFor(useMobileUiLocale())
   const history = props.history
   const full = useFullAutomationRun(
     props.client,
@@ -43,7 +45,7 @@ export function AutomationRunDetails(props: {
     history.scope
   )
   const run = full.run
-  const runError = automationRunErrorText(run)
+  const runError = automationRunErrorText(run, t)
   const [opening, setOpening] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouteHandoff()
@@ -153,15 +155,15 @@ export function AutomationRunDetails(props: {
         </Text>
       ) : null}
       <Text style={styles.title}>{run.title}</Text>
-      <Text style={styles.text}>{automationRunStatusLabel(run.status)}</Text>
+      <Text style={styles.text}>{automationRunStatusLabel(run.status, t)}</Text>
       <View style={styles.card}>
         <AutomationMetadata
           label={t('automations.mobile.scheduledFor', 'Scheduled for')}
-          value={automationDate(run.scheduledFor)}
+          value={automationDate(run.scheduledFor, t, intlLocale)}
         />
         <AutomationMetadata
           label={t('automations.mobile.started', 'Started')}
-          value={automationDate(run.startedAt)}
+          value={automationDate(run.startedAt, t, intlLocale)}
         />
         <AutomationMetadata
           label={t('automations.mobile.trigger', 'Trigger')}
@@ -214,10 +216,10 @@ export function AutomationRunDetails(props: {
             ? t(
                 'automations.mobile.capturedTruncated',
                 'Captured {{date}} · Output truncated by host',
-                { date: automationDate(run.outputSnapshot.capturedAt) }
+                { date: automationDate(run.outputSnapshot.capturedAt, t, intlLocale) }
               )
             : t('automations.mobile.capturedDate', 'Captured {{date}}', {
-                date: automationDate(run.outputSnapshot.capturedAt)
+                date: automationDate(run.outputSnapshot.capturedAt, t, intlLocale)
               })}
         </Text>
       ) : null}

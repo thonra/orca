@@ -3,7 +3,7 @@ import { ScrollView } from 'react-native'
 import { useMobileTranslation } from '../../i18n/use-mobile-translation'
 import { useResponsiveLayout } from '../../layout/responsive-layout'
 import { spacing } from '../../theme/mobile-theme'
-import { themedStyleSheet } from '../../theme/themed-styles'
+import { themedStyleSheet, useThemedStyles } from '../../theme/themed-styles'
 import type { AgentListRowHandlers } from '../../agents/MobileAgentListRows'
 import type { HostCatalogEntry } from '../../host-catalog/host-profile'
 import { MobileHomeAppUpdateCard } from '../MobileHomeAppUpdateCard'
@@ -32,6 +32,7 @@ export function MobileHomeFeedTab(props: {
   onOpenTasks: (hostId: string) => void
   onOpenSettings: () => void
 }) {
+  const styles = useThemedStyles(stylesSheet)
   const t = useMobileTranslation()
   const { isWideLayout, contentMaxWidth } = useResponsiveLayout()
   const { data } = props
@@ -112,6 +113,6 @@ export function MobileHomeFeedTab(props: {
   )
 }
 
-const styles = themedStyleSheet(() => ({
+const stylesSheet = themedStyleSheet(() => ({
   content: { paddingHorizontal: spacing.lg }
 }))

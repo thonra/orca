@@ -1,5 +1,4 @@
 import { useMobileTranslation } from '../i18n/use-mobile-translation'
-import { useMobileColorScheme } from '../theme/use-mobile-color-scheme'
 import { useState, type ReactNode } from 'react'
 import { Pressable, Text, View } from 'react-native'
 import { MobileSegmentedControl } from '../components/controls/MobileSegmentedControl'
@@ -11,7 +10,8 @@ import { NavBarButton } from '../components/nav-bar/NavBarButton'
 import { SettingsNote } from '../settings/settings-screen-frame'
 import { PickerModal, type PickerOption } from '../components/sheets/PickerModal'
 import { pressedStyle } from '../theme/mobile-theme'
-import { automationStyles as styles } from './automation-styles'
+import { useThemedStyles } from '../theme/themed-styles'
+import { automationStylesSheet } from './automation-styles'
 
 export function AutomationButton(props: {
   label: string
@@ -20,7 +20,7 @@ export function AutomationButton(props: {
   primary?: boolean
   destructive?: boolean
 }) {
-  useMobileColorScheme()
+  const styles = useThemedStyles(automationStylesSheet)
   return (
     <Pressable
       accessibilityRole="button"
@@ -99,7 +99,6 @@ export function AutomationChoiceRow<Value extends string>(props: {
   options: PickerOption<Value>[]
   onSelect: (value: Value) => void
 }) {
-  useMobileColorScheme()
   const [open, setOpen] = useState(false)
   return (
     <>
@@ -122,7 +121,7 @@ export function AutomationChoiceRow<Value extends string>(props: {
   )
 }
 export function AutomationMetadata({ label, value }: { label: string; value: string }) {
-  useMobileColorScheme()
+  const styles = useThemedStyles(automationStylesSheet)
   return (
     <View style={styles.stack}>
       <Text style={styles.meta}>{label}</Text>
@@ -139,7 +138,7 @@ export function AutomationTabs(props: {
   disabled: boolean
 }) {
   const t = useMobileTranslation()
-  useMobileColorScheme()
+  const styles = useThemedStyles(automationStylesSheet)
   return (
     <MobileSegmentedControl
       fill
