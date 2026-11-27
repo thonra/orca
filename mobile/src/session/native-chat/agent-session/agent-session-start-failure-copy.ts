@@ -188,6 +188,12 @@ export const START_FAILURE_COPY = {
       "{{agent}}'s setup is changing on this host. Try again after it finishes.",
       values
     ),
+  accountSwitching: (values) =>
+    translate(
+      'session.failure.accountSwitching',
+      '{{agent}} is switching accounts on this host. Try again after it finishes.',
+      values
+    ),
   managedAccountUnsupported: (values) =>
     translate(
       'session.failure.managedAccountUnsupported',

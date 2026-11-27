@@ -10,6 +10,7 @@ export function namingAgent(id: AgentSessionFailureCopyId): Sentence {
 export const SETUP_REFUSAL_SENTENCES = {
   managedAccountEnvOverride: (_context, _fact, _surface, say) => say('managedAccountEnvOverride'),
   accountSwitchInProgress: namingAgent('accountSwitchInProgress'),
+  accountSwitching: namingAgent('accountSwitching'),
   launchFolderMissing: (_context, _fact, _surface, say) => say('launchFolderMissing'),
   historyInOtherAccount: (_context, _fact, _surface, say) => say('historyInOtherAccount'),
   claudeAccountFolderMissing: (_context, _fact, _surface, say) => say('claudeAccountFolderMissing'),

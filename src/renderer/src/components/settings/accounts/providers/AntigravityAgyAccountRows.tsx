@@ -1,12 +1,19 @@
-import { AlertCircle, Trash2, UserPlus } from 'lucide-react'
+import { Trash2, UserPlus } from 'lucide-react'
 import { cn } from '@/lib/class-names'
-import { useTranslate, type Translate } from '@/i18n/use-translate'
+import { useTranslate } from '@/i18n/use-translate'
 import type { AntigravityAccountState } from '../../../../../../shared/agent-accounts/antigravity/antigravity-account-types'
 import { openAppHttpLinkFromAnchor } from '@/lib/browser/navigation/app-http-link-open'
 import { Badge } from '../../../ui/badge'
 import { Button } from '../../../ui/button'
 import { AntigravityChatSignInFlowPanel } from '../../../provider-accounts/AntigravityChatSignInFlowPanel'
 import type { AntigravityChatSignInControls } from '../../../provider-accounts/use-antigravity-chat-sign-in'
+import { Tooltip, TooltipContent, TooltipTrigger } from '../../../ui/tooltip'
+import { SettingsDisabledControlTooltip as Locked } from '../../form-controls/SettingsDisabledControlTooltip'
+import {
+  AntigravityActionError as ActionError,
+  antigravitySwitchDetail,
+  antigravitySwitchLock
+} from './AntigravityAccountSwitchStatus'
 
 export type AntigravityAccountAction = 'List' | 'AddCurrent' | 'Select' | 'Remove'
 
@@ -31,7 +38,8 @@ export function AntigravityAgyAccountRows({
   const t = useTranslate()
   const signingIn = signIn?.ownFlow === true
   // A switch waiting for chats refuses every account change until it ends.
-  const locked = busy || Boolean(state?.switching)
+  const switchLock = antigravitySwitchLock(t, state)
+  const locked = busy || switchLock !== undefined
   const signInAlert = signIn?.alert ? <ActionError message={signIn.alert} /> : null
   const changed = Boolean(
     state?.selectedAccountId && state.activeAccountId !== state.selectedAccountId
@@ -144,9 +152,11 @@ export function AntigravityAgyAccountRows({
           )
         }
         actions={
-          <Button size="xs" variant="outline" disabled={locked} onClick={() => run('AddCurrent')}>
-            {t('accounts.antigravity.saveShort', 'Save')}
-          </Button>
+          <Locked reason={switchLock}>
+            <Button size="xs" variant="outline" disabled={locked} onClick={() => run('AddCurrent')}>
+              {t('accounts.antigravity.saveShort', 'Save')}
+            </Button>
+          </Locked>
         }
       />
     )
@@ -159,7 +169,7 @@ export function AntigravityAgyAccountRows({
         title={account.email ?? t('accounts.antigravity.saved', 'Saved Google account')}
         active={active}
         detail={
-          switchDetail(t, state, account.id) ??
+          antigravitySwitchDetail(t, state, account.id) ??
           (account.id === launchesUse
             ? t('accounts.antigravity.launchesUse', 'New agy launches use this account')
             : launchesUse && active
@@ -167,18 +177,21 @@ export function AntigravityAgyAccountRows({
               : undefined)
         }
         selectDisabled={locked}
+        selectLock={switchLock}
         onSelect={() => run('Select', account.id)}
         actions={
           active ? null : (
-            <Button
-              variant="ghost"
-              size="xs"
-              disabled={locked}
-              onClick={() => run('Remove', account.id)}
-            >
-              <Trash2 />
-              {t('accounts.antigravity.remove', 'Remove')}
-            </Button>
+            <Locked reason={switchLock}>
+              <Button
+                variant="ghost"
+                size="xs"
+                disabled={locked}
+                onClick={() => run('Remove', account.id)}
+              >
+                <Trash2 />
+                {t('accounts.antigravity.remove', 'Remove')}
+              </Button>
+            </Locked>
           )
         }
       />
@@ -198,15 +211,17 @@ export function AntigravityAgyAccountRows({
             )
           }
           actions={
-            <Button
-              size="xs"
-              variant="outline"
-              disabled={locked || signIn.signInDisabled}
-              onClick={signIn.addAccount}
-            >
-              <UserPlus />
-              {t('accounts.antigravity.addAccount', 'Add account')}
-            </Button>
+            <Locked reason={switchLock}>
+              <Button
+                size="xs"
+                variant="outline"
+                disabled={locked || signIn.signInDisabled}
+                onClick={signIn.addAccount}
+              >
+                <UserPlus />
+                {t('accounts.antigravity.addAccount', 'Add account')}
+              </Button>
+            </Locked>
           }
         />
       ) : (
@@ -229,36 +244,6 @@ export function AntigravityAgyAccountRows({
   return <>{terminalRows}</>
 }
 
-/** A switch to this account still waiting for chats' agy to exit, or why it didn't happen. */
-function switchDetail(
-  t: Translate,
-  state: AntigravityAccountState | null,
-  accountId: string
-): React.ReactNode {
-  const { switching, switchFailed } = state ?? {}
-  if (switching?.accountId === accountId) {
-    const count = switching.waitingForChats
-    return count > 0
-      ? t('accounts.antigravity.switchingAfterChats', 'Switching after {{count}} chats finish…', {
-          count,
-          defaultValue_one: 'Switching after {{count}} chat finishes…'
-        })
-      : t('accounts.antigravity.switching', 'Switching…')
-  }
-  return switchFailed?.accountId === accountId ? (
-    <ActionError message={switchFailed.message} />
-  ) : null
-}
-
-function ActionError({ message }: { message: string }): React.JSX.Element {
-  return (
-    <span role="alert" className="flex items-center gap-1.5 text-destructive">
-      <AlertCircle className="size-3.5 shrink-0" />
-      {message}
-    </span>
-  )
-}
-
 /** A settings row whose label selects the account, like Codex's account rows. */
 function AntigravityAccountRow({
   title,
@@ -266,7 +251,8 @@ function AntigravityAccountRow({
   active = false,
   actions,
   onSelect,
-  selectDisabled
+  selectDisabled,
+  selectLock
 }: {
   title: string | null
   detail?: React.ReactNode
@@ -274,6 +260,8 @@ function AntigravityAccountRow({
   actions?: React.ReactNode
   onSelect?: () => void
   selectDisabled?: boolean
+  /** Why the label doesn't select now; shown on hover. */
+  selectLock?: string
 }): React.JSX.Element {
   const t = useTranslate()
   const label = (
@@ -306,20 +294,36 @@ function AntigravityAccountRow({
           onSelect && !selectDisabled && 'transition-colors hover:bg-accent/40'
         )}
       >
-        {onSelect ? (
-          <button
-            type="button"
-            onClick={onSelect}
-            disabled={selectDisabled}
-            className="flex min-w-0 flex-1 flex-col items-start text-left disabled:cursor-default"
-          >
-            {label}
-          </button>
+        {onSelect && selectLock ? (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              {/* A disabled button drops hover events, so its wrapper carries the tooltip. */}
+              <span className="flex min-w-0 flex-1">{select(onSelect, selectDisabled, label)}</span>
+            </TooltipTrigger>
+            <TooltipContent side="top" sideOffset={4}>
+              {selectLock}
+            </TooltipContent>
+          </Tooltip>
+        ) : onSelect ? (
+          select(onSelect, selectDisabled, label)
         ) : (
           <div className="flex min-w-0 flex-1 flex-col items-start">{label}</div>
         )}
         {actions ? <div className="flex shrink-0 items-center gap-1">{actions}</div> : null}
       </div>
     </div>
+  )
+}
+
+function select(onSelect: () => void, disabled: boolean | undefined, label: React.ReactNode) {
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      disabled={disabled}
+      className="flex min-w-0 flex-1 flex-col items-start text-left disabled:cursor-default"
+    >
+      {label}
+    </button>
   )
 }

@@ -36,9 +36,17 @@ export class AcpLaunchGate {
   /** Refuses starts during an operation and aborts existing starts when one begins. */
   enter(signal: AbortSignal | undefined, chat = false): { signal: AbortSignal; leave: () => void } {
     if (this.operating) {
-      throw new AgentSessionPreSpawnError(new Error(this.refusal), {
-        reason: 'accountSwitchInProgress'
-      })
+      // Only an account switch holds starts; any other change refuses them.
+      throw this.held
+        ? new AgentSessionPreSpawnError(
+            new Error(
+              `${this.label} is switching accounts on this host. Try again after it finishes.`
+            ),
+            { reason: 'accountSwitching' }
+          )
+        : new AgentSessionPreSpawnError(new Error(this.refusal), {
+            reason: 'accountSwitchInProgress'
+          })
     }
     const controller = new AbortController()
     const left = Promise.withResolvers<void>()
@@ -113,10 +121,10 @@ export class AcpLaunchGate {
     }
   }
 
-  /** Like `run` for a change that waits for chats instead of stopping them: chat starts wait for
-   *  it, chat starts under way finish, other starts are cancelled and every process no chat owns
-   *  is stopped. `drain` returns once `running()` reads 0 and 0: every process started here has
-   *  been seen to exit, and no start is under way. */
+  /** Like `run` for an account switch, which waits for chats instead of stopping them: chat
+   *  starts wait for it, chat starts under way finish, other starts are refused or cancelled and
+   *  every process no chat owns is stopped. `drain` returns once `running()` reads 0 and 0:
+   *  every process started here has been seen to exit, and no start is under way. */
   async runAfterChats<T>(
     drain: (running: () => { chats: number; others: number }) => Promise<void>,
     work: () => Promise<T>

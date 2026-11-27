@@ -84,6 +84,7 @@ export const AGENT_SESSION_FAILURE_COPY = {
     'This Claude launch sets its own Anthropic sign-in variables. Remove them to use a managed Claude account.',
   accountSwitchInProgress:
     "{{agent}}'s setup is changing on this host. Try again after it finishes.",
+  accountSwitching: '{{agent}} is switching accounts on this host. Try again after it finishes.',
   managedAccountUnsupported:
     'While a Claude account is added in WSL, Claude chats need a Windows Claude account.',
   launchFolderMissing:

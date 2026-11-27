@@ -113,6 +113,7 @@ const REASON_WORDS = {
     historyTooLarge: { fact: 'historyTooLarge', action: 'goElsewhere' },
     managedAccountEnvOverride: { fact: 'managedAccountEnvOverride', action: 'actFirst' },
     accountSwitchInProgress: { fact: 'accountSwitchInProgress', action: 'wait' },
+    accountSwitching: { fact: 'accountSwitching', action: 'wait' },
     managedAccountUnsupported: { fact: 'managedAccountUnsupported', action: 'actFirst' },
     launchFolderMissing: { fact: 'launchFolderMissing', action: 'actFirst' },
     historyInOtherAccount: { fact: 'historyInOtherAccount', action: 'actFirst' },

@@ -21,6 +21,7 @@ import { structuredChatUnavailableOnPlatform } from '../../../../../../shared/ag
 import { SettingsGroup } from '../../section-layout/SettingsGroup'
 import { useOnLaterChange } from './use-on-later-change'
 import { useAntigravityAccountRun } from './use-antigravity-account-run'
+import { followAntigravityAccountSwitch } from '@/lib/provider-accounts/antigravity-account-switch-toasts'
 import { ACCOUNTS_SECTION_IDS } from '../accounts-search'
 import {
   AntigravityAgyAccountRows,
@@ -106,6 +107,10 @@ export function AntigravityAccountsSection({
       const next = await callAntigravityAccounts(owner, target, action, accountId)
       if (latest()) {
         setState(next)
+      }
+      // A switch still waiting for chats tells how it ended, wherever the app is by then.
+      if (action === 'Select' && accountId && next.switching?.accountId === accountId) {
+        followAntigravityAccountSwitch(owner, target, accountId)
       }
     } catch (cause) {
       if (action === 'Select' || action === 'Remove' || action === 'AddCurrent') {

@@ -105,3 +105,14 @@ export const switchFailed = defineFixture({
       }
     })
 })
+
+export const switchLockTooltip = defineFixture({
+  width: 640,
+  render: () => rows({ ...onPersonal, switching: { accountId: saved.id, waitingForChats: 1 } }),
+  // Hovers the disabled Remove's wrapper, which carries why it's off.
+  interact: async (frame) => {
+    const wrapper = frame.querySelector('span.inline-flex > button:disabled')?.parentElement
+    wrapper?.dispatchEvent(new PointerEvent('pointermove', { bubbles: true, pointerType: 'mouse' }))
+    await new Promise((resolve) => setTimeout(resolve, 1_200))
+  }
+})

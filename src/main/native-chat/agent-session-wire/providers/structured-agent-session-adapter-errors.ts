@@ -38,6 +38,7 @@ export type AgentSessionPreSpawnReason = Extract<
   AgentSessionRefusalReason<'agent_session_operation_invalid'>,
   | 'managedAccountEnvOverride'
   | 'accountSwitchInProgress'
+  | 'accountSwitching'
   | 'managedAccountUnsupported'
   | 'launchFolderMissing'
   | 'historyInOtherAccount'

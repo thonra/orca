@@ -40,6 +40,7 @@ const TYPED_START_REFUSALS = [
   'historyTooLarge',
   'managedAccountEnvOverride',
   'accountSwitchInProgress',
+  'accountSwitching',
   'managedAccountUnsupported',
   'launchFolderMissing',
   'historyInOtherAccount',

@@ -36,6 +36,7 @@ export const AGENT_SESSION_FAILURE_KINDS = [
   'historyTooLarge',
   'managedAccountEnvOverride',
   'accountSwitchInProgress',
+  'accountSwitching',
   'managedAccountUnsupported',
   'launchFolderMissing',
   'historyInOtherAccount',

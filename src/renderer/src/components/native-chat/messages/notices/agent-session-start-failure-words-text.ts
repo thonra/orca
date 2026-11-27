@@ -6,6 +6,18 @@ import {
 } from '../../../../../../shared/agent-session/failures/agent-session-failure-copy'
 
 export const START_FAILURE_PIECES = {
+  accountSwitchInProgress: (values) =>
+    translate(
+      'components.native-chat.failureWords.accountSwitchInProgress',
+      COPY.accountSwitchInProgress,
+      values
+    ),
+  accountSwitching: (values) =>
+    translate(
+      'components.native-chat.failureWords.accountSwitching',
+      COPY.accountSwitching,
+      values
+    ),
   botToolsNeedStatusHooks: (values) =>
     translate(
       'components.native-chat.failureWords.botToolsNeedStatusHooks',

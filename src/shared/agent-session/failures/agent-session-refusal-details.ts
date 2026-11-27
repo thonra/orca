@@ -76,6 +76,8 @@ export const AGENT_SESSION_REFUSAL_REASONS = {
     /** The launch's own Anthropic sign-in variables would override the managed Claude account. */
     'managedAccountEnvOverride',
     'accountSwitchInProgress',
+    /** The agent's saved account is switching on this host; new work waits for it. */
+    'accountSwitching',
     /** A Claude account is added in WSL and no Windows one is selected, which a chat can't run under. */
     'managedAccountUnsupported',
     /** A floating chat resumes only in the folder it ran in, and that folder is gone. */
