@@ -5,6 +5,7 @@ export type ProjectGroup = {
   id: string
   name: string
   parentPath: string | null
+  defaultWorkingDirectory?: string | null
   hookSettings?: RepoHookSettings
   /** SSH target ID for folder-backed groups imported from a remote root. */
   connectionId?: string | null
@@ -21,7 +22,10 @@ export type ProjectGroup = {
 }
 
 export type ProjectGroupUpdate = Partial<
-  Pick<ProjectGroup, 'name' | 'isCollapsed' | 'tabOrder' | 'color' | 'hookSettings'>
+  Pick<
+    ProjectGroup,
+    'name' | 'defaultWorkingDirectory' | 'isCollapsed' | 'tabOrder' | 'color' | 'hookSettings'
+  >
 > & { rootProjectOrder?: number | null }
 
 export type ProjectGroupMutation = { groupId: string; updates: ProjectGroupUpdate }

@@ -15,6 +15,7 @@ type ComposerNavigationActionsInput = Pick<
 >
 
 import { useCallback } from 'react'
+import { getProjectGroupDefaultWorkingDirectory } from '../../../../../shared/project/groups/project-groups'
 import { getTaskSourceRuntimeSettings } from '../../../../../shared/work-items/task-source-context'
 
 export function useComposerNavigationActions(input: ComposerNavigationActionsInput) {
@@ -61,7 +62,7 @@ export function useComposerNavigationActions(input: ComposerNavigationActionsInp
   const folderCreateDisabled =
     creating ||
     sourceIntentBlocksCreate ||
-    !selectedProjectGroup?.parentPath ||
+    !getProjectGroupDefaultWorkingDirectory(selectedProjectGroup) ||
     folderPathStatusBlocksCreate ||
     folderTargetRequiresConnection
 

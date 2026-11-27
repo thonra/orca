@@ -6,20 +6,44 @@ import type {
 import type { RuntimeClientTarget } from '../../../../shared/remote-runtime/host-catalog/runtime-client-target'
 import type { RepoSlice } from '../repos/repo-state'
 import {
+  PROJECT_GROUP_DEFAULT_WORKING_DIRECTORY_RUNTIME_CAPABILITY,
   PROJECT_GROUP_UPDATE_MANY_RUNTIME_CAPABILITY,
   PROJECT_ROOT_ORDER_RUNTIME_CAPABILITY
 } from '../../../../shared/project/groups/project-group-order-capability'
 import { runtimeEnvironmentSupportsCapability } from '@/runtime/rpc/compatibility/runtime-capability-proof'
 import { callRuntimeRpc } from '@/runtime/rpc/calls/runtime-rpc-call'
 
-function groupOrderMatchesUpdate(
+import type { RuntimeStatus } from '../../../../shared/remote-runtime/session-graph/runtime-session-contracts'
+
+export function projectGroupMutationRpcOptions<T>(params: T, changesWorkingDirectory: boolean) {
+  return {
+    timeoutMs: 15_000,
+    // Older hosts ignore unknown update fields. Check support before sending the mutation.
+    paramsForStatus: changesWorkingDirectory
+      ? (status: RuntimeStatus | null) => {
+          if (
+            !status?.capabilities?.includes(
+              PROJECT_GROUP_DEFAULT_WORKING_DIRECTORY_RUNTIME_CAPABILITY
+            )
+          ) {
+            throw new Error('project_group_default_working_directory_unsupported')
+          }
+          return params
+        }
+      : undefined
+  }
+}
+
+function groupMatchesUpdate(
   group: ProjectGroup,
   updates: ProjectGroupMutation['updates']
 ): boolean {
   return (
     (updates.rootProjectOrder === undefined ||
       (group.rootProjectOrder ?? null) === updates.rootProjectOrder) &&
-    (updates.tabOrder === undefined || group.tabOrder === updates.tabOrder)
+    (updates.tabOrder === undefined || group.tabOrder === updates.tabOrder) &&
+    (updates.defaultWorkingDirectory === undefined ||
+      group.defaultWorkingDirectory === updates.defaultWorkingDirectory)
   )
 }
 
@@ -38,18 +62,19 @@ export async function persistProjectGroupUpdate(
   ) {
     return null
   }
+  const args = { groupId, updates }
   const updated =
     target.kind === 'local'
-      ? await window.api.projectGroups.update({ groupId, updates })
+      ? await window.api.projectGroups.update(args)
       : (
           await callRuntimeRpc<{ group: ProjectGroup | null }>(
             target,
             'projectGroup.update',
-            { groupId, updates },
-            { timeoutMs: 15_000 }
+            args,
+            projectGroupMutationRpcOptions(args, updates.defaultWorkingDirectory !== undefined)
           )
         ).group
-  if (!updated || !groupOrderMatchesUpdate(updated, updates)) {
+  if (!updated || !groupMatchesUpdate(updated, updates)) {
     return null
   }
   return updated
@@ -57,7 +82,8 @@ export async function persistProjectGroupUpdate(
 
 export async function persistProjectGroupUpdates(
   target: RuntimeClientTarget,
-  mutations: readonly ProjectGroupMutation[]
+  mutations: readonly ProjectGroupMutation[],
+  throwOnError = false
 ): Promise<(ProjectGroup | null)[]> {
   if (mutations.length === 0) {
     return []
@@ -73,6 +99,9 @@ export async function persistProjectGroupUpdates(
     return Promise.all(
       mutations.map(({ groupId, updates }) =>
         persistProjectGroupUpdate(target, groupId, updates).catch((err) => {
+          if (throwOnError) {
+            throw err
+          }
           console.error('Failed to update project group:', err)
           return null
         })
@@ -89,21 +118,25 @@ export async function persistProjectGroupUpdates(
   ) {
     return mutations.map(() => null)
   }
+  const args = { mutations }
   const updated =
     target.kind === 'local'
-      ? await window.api.projectGroups.updateMany({ mutations })
+      ? await window.api.projectGroups.updateMany(args)
       : (
           await callRuntimeRpc<{ groups: ProjectGroup[] | null }>(
             target,
             'projectGroup.updateMany',
-            { mutations },
-            { timeoutMs: 15_000 }
+            args,
+            projectGroupMutationRpcOptions(
+              args,
+              mutations.some(({ updates }) => updates.defaultWorkingDirectory !== undefined)
+            )
           )
         ).groups
   const byId = new Map(updated?.map((group) => [group.id, group]))
   return mutations.map(({ groupId, updates }) => {
     const group = byId.get(groupId)
-    return group && groupOrderMatchesUpdate(group, updates) ? group : null
+    return group && groupMatchesUpdate(group, updates) ? group : null
   })
 }
 

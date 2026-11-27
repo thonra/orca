@@ -216,6 +216,9 @@ function isMigratedProjectGroup(value: unknown): value is ProjectGroup {
   if (value.parentPath !== null && typeof value.parentPath !== 'string') {
     throw new Error('orcad_migration_manifest_project_group_parent_path_invalid')
   }
+  if (value.defaultWorkingDirectory != null && typeof value.defaultWorkingDirectory !== 'string') {
+    throw new Error('orcad_migration_manifest_project_group_working_directory_invalid')
+  }
   if (value.parentGroupId !== null && typeof value.parentGroupId !== 'string') {
     throw new Error('orcad_migration_manifest_project_group_parent_invalid')
   }

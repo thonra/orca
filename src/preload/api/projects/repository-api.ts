@@ -139,6 +139,7 @@ export type ProjectGroupsApi = {
   create: (args: {
     name: string
     parentPath?: string | null
+    defaultWorkingDirectory?: string | null
     connectionId?: string | null
     parentGroupId?: string | null
     createdFrom?: ProjectGroup['createdFrom']

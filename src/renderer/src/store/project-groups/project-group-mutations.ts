@@ -1,4 +1,7 @@
-import { initializeNewRootProjectGroupOrder } from './project-group-update-persistence'
+import {
+  initializeNewRootProjectGroupOrder,
+  projectGroupMutationRpcOptions
+} from './project-group-update-persistence'
 import type { StateCreator } from 'zustand'
 import type { AppState } from '../types'
 import type { ProjectGroup } from '../../../../shared/project/groups/project-group-types'
@@ -49,25 +52,26 @@ export function createProjectGroupMutationActions(
   | 'moveProjectToGroup'
 > {
   return {
-    createProjectGroup: async (name, hostId) => {
+    createProjectGroup: async (name, hostId, defaultWorkingDirectory, options) => {
       try {
-        // Why: a new group lands on the host of the project that seeds it, not the focused one.
         const target = ipcOrRuntimeTargetForHostId(hostId)
         if (!target) {
           return null
         }
+        const args = {
+          name,
+          createdFrom: 'manual' as const,
+          ...(defaultWorkingDirectory === undefined ? {} : { defaultWorkingDirectory })
+        }
         const group =
           target.kind === 'local'
-            ? await window.api.projectGroups.create({
-                name,
-                createdFrom: 'manual'
-              })
+            ? await window.api.projectGroups.create(args)
             : (
                 await callRuntimeRpc<{ group: ProjectGroup }>(
                   target,
                   'projectGroup.create',
-                  { name, createdFrom: 'manual' },
-                  { timeoutMs: 15_000 }
+                  args,
+                  projectGroupMutationRpcOptions(args, defaultWorkingDirectory !== undefined)
                 )
               ).group
         const orderedGroup = await initializeNewRootProjectGroupOrder(target, group, get())
@@ -92,13 +96,16 @@ export function createProjectGroupMutationActions(
         })
         return ownedGroup
       } catch (err) {
+        if (options?.throwOnError) {
+          throw err
+        }
         console.error('Failed to create project group:', err)
         return null
       }
     },
 
     updateProjectGroup: (groupId, updates, options) =>
-      get().updateProjectGroups([{ groupId, updates, hostId: options?.hostId }]),
+      get().updateProjectGroups([{ groupId, updates, hostId: options?.hostId }], options),
 
     deleteProjectGroup: async (groupId, options) => {
       try {

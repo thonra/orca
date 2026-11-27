@@ -78,6 +78,7 @@ export const ProjectGroupSchema = z.object({
   id: z.string(),
   name: z.string(),
   parentPath: z.string().nullable(),
+  defaultWorkingDirectory: salvagedOptional('defaultWorkingDirectory', z.string().nullable()),
   connectionId: salvagedOptional('connectionId', z.string().nullable()),
   executionHostId: salvagedOptional('executionHostId', z.string().nullable()),
   parentGroupId: z.string().nullable(),

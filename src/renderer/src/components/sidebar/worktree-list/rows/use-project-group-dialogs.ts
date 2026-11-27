@@ -5,6 +5,7 @@ import { projectRemovalTargets } from '../../workspace-actions/deletion/removal-
 import { confirmUnsavedDiscard } from '@/store/slices/worktrees/teardown/removed-workspace-unsaved-files'
 import { translate } from '@/i18n/i18n'
 import { selectProjectGroupRemovalTargets } from '@/store/project-groups/project-group-removal-targets'
+import { getProjectGroupDefaultWorkingDirectory } from '../../../../../../shared/project/groups/project-groups'
 import type { ProjectGroup } from '../../../../../../shared/project/groups/project-group-types'
 import type { Repo } from '../../../../../../shared/repository/repo-types'
 import {
@@ -20,13 +21,7 @@ import { runWithFinally } from '@/lib/run-with-finally'
 
 export type ProjectGroupNameDialogState =
   | { type: 'create-from-repo'; repo: Repo }
-  // hostId is the group row's owner host, so the mutation is not routed to whichever host has focus.
-  | {
-      type: 'rename'
-      groupId: string
-      currentName: string
-      hostId?: ExecutionHostId
-    }
+  | { type: 'edit'; group: ProjectGroup; focusWorkingDirectory: boolean }
 
 export type ProjectGroupDeleteDialogState = {
   groupId: string
@@ -159,15 +154,15 @@ export function useProjectGroupDialogs(args: {
     [moveProjectToGroup]
   )
 
-  const handleRenameProjectGroup = useCallback(
-    (groupId: string, currentName: string, hostId?: ExecutionHostId) => {
-      setNameDialog({ type: 'rename', groupId, currentName, hostId })
+  const handleEditProjectGroup = useCallback(
+    (group: ProjectGroup, focusWorkingDirectory = false) => {
+      setNameDialog({ type: 'edit', group, focusWorkingDirectory })
     },
     []
   )
 
   const handleSubmitProjectGroupName = useCallback(
-    async (name: string) => {
+    async (name: string, defaultWorkingDirectory: string | null) => {
       if (!nameDialog) {
         return
       }
@@ -178,25 +173,22 @@ export function useProjectGroupDialogs(args: {
         }
         return
       }
-      const renamed = await updateProjectGroup(
-        nameDialog.groupId,
-        { name },
-        { hostId: nameDialog.hostId }
-      )
-      if (!renamed) {
-        toast.error(
-          translate(
-            'auto.components.sidebar.WorktreeList.groupRenameFailed',
-            'Failed to rename group'
-          ),
-          {
-            description: translate(
-              'auto.components.sidebar.WorktreeList.groupRenameFailedDesc',
-              // Why: a falsy result also covers RPC timeout/disconnect, so the copy must not assert the host refused.
-              "Orca could not confirm the new name with the group's host. Recheck the group after reconnecting."
-            )
-          }
-        )
+      const { group } = nameDialog
+      const updates = {
+        ...(name !== group.name ? { name } : {}),
+        ...(defaultWorkingDirectory !== getProjectGroupDefaultWorkingDirectory(group)
+          ? { defaultWorkingDirectory }
+          : {})
+      }
+      if (Object.keys(updates).length === 0) {
+        return
+      }
+      const updated = await updateProjectGroup(group.id, updates, {
+        hostId: getRepoExecutionHostId(group),
+        throwOnError: true
+      })
+      if (!updated) {
+        throw new Error('project_group_save_unconfirmed')
       }
     },
     [createProjectGroup, moveProjectToGroup, nameDialog, updateProjectGroup]
@@ -284,7 +276,7 @@ export function useProjectGroupDialogs(args: {
     handleMoveProjectToGroup,
     handleRemoveProjectFromGroup,
     handleRefreshProjectGroup,
-    handleRenameProjectGroup,
+    handleEditProjectGroup,
     handleSubmitProjectGroupName,
     handleDeleteProjectGroup,
     handleConfirmDeleteProjectGroup

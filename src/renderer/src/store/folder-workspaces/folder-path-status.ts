@@ -5,7 +5,10 @@ import {
   type FolderWorkspacePathStatusRequest
 } from '../../../../shared/folder-workspaces/folder-workspace-path-status'
 
-import { getProjectGroupSubtreeIds } from '../../../../shared/project/groups/project-groups'
+import {
+  getProjectGroupDefaultWorkingDirectory,
+  getProjectGroupSubtreeIds
+} from '../../../../shared/project/groups/project-groups'
 import { isPathInsideOrEqual } from '../../../../shared/file-access/cross-platform-path'
 import {
   getRepoExecutionHostId,
@@ -56,9 +59,10 @@ function getFolderPathStatusScope(
         catalogOwnsHost(ownerHostId, getRepoExecutionHostId(group))
     )
     const group = groups.length === 1 ? groups[0] : null
-    return group?.parentPath
+    const path = getProjectGroupDefaultWorkingDirectory(group)
+    return group && path
       ? {
-          path: group.parentPath,
+          path,
           projectGroupId: group.id,
           connectionId: group.connectionId ?? null,
           executionHostId: getRepoExecutionHostId(group)

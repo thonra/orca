@@ -247,8 +247,12 @@ export type RepoSlice = {
     runtimeEnvironmentId: string | null
     mode: 'group' | 'separate'
   }) => Promise<ProjectGroupImportResult | null>
-  /** `hostId` is the host of the project that seeds the group. */
-  createProjectGroup: (name: string, hostId: ExecutionHostId) => Promise<ProjectGroup | null>
+  createProjectGroup: (
+    name: string,
+    hostId: ExecutionHostId,
+    defaultWorkingDirectory?: string,
+    options?: { throwOnError?: boolean }
+  ) => Promise<ProjectGroup | null>
   createFolderWorkspace: (
     args: FolderWorkspaceCreateInput,
     options: FolderWorkspacePathStatusRouteOptions & { signal?: AbortSignal }
@@ -278,10 +282,11 @@ export type RepoSlice = {
   updateProjectGroup: (
     groupId: string,
     updates: ProjectGroupUpdate,
-    options?: { hostId?: ExecutionHostId }
+    options?: { hostId?: ExecutionHostId; throwOnError?: boolean }
   ) => Promise<boolean>
   updateProjectGroups: (
-    mutations: readonly (ProjectGroupMutation & { hostId?: ExecutionHostId })[]
+    mutations: readonly (ProjectGroupMutation & { hostId?: ExecutionHostId })[],
+    options?: { throwOnError?: boolean }
   ) => Promise<boolean>
   deleteProjectGroup: (groupId: string, options?: { hostId?: ExecutionHostId }) => Promise<boolean>
   deleteProjectGroupWithContainedProjects: (

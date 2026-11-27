@@ -7319,8 +7319,7 @@
           "83dfbc5313": "Gruppenname",
           "4a64e78822": "Wird gespeichert…",
           "defaultGroupName": "Gruppe {{name}}",
-          "create": "Erstellen",
-          "rename": "Umbenennen"
+          "create": "Erstellen"
         },
         "RemoteFileBrowser": {
           "2300612806": "Zum Filtern tippen oder einen Pfad eingeben…",
@@ -7743,9 +7742,7 @@
           "hostAuthNeeded": "Authentifizierung erforderlich",
           "hostDisconnected": "Getrennt",
           "d880ea0744": "Eine Gruppe erstellen und dieses Projekt dorthin verschieben.",
-          "bc1460beb3": "Den in der Seitenleiste angezeigten Gruppennamen aktualisieren.",
           "13757c053c": "Projektgruppe erstellen",
-          "f9dc6cc5d3": "Projektgruppe umbenennen",
           "370c6a55dd": "Filter zurücksetzen",
           "b7acbf038b": "Keine Arbeitsbereiche gefunden",
           "c83968f87f": "Projekt entfernen",
@@ -7757,7 +7754,6 @@
           "2ef41bf9a7": "Projektaktionen",
           "609633a9e6": "Projektaktionen für {{value0}}",
           "902115cdbe": "Gruppe löschen",
-          "4d7b73658c": "Gruppe umbenennen",
           "79465e9034": "Gruppenaktionen für {{value0}}",
           "bfbedc547b": "Worktrees",
           "bb85cd86ba": "Arbeitsbereich für {{value0}} erstellen",
@@ -7765,8 +7761,6 @@
           "b667b59632": "Einige Projekte konnten nicht aus Orca entfernt werden",
           "groupDeleteFailed": "Gruppe konnte nicht gelöscht werden",
           "groupDeleteFailedDesc": "Beim Löschen der Gruppe ist ein Fehler aufgetreten. Es wurden keine Projekte entfernt.",
-          "groupRenameFailed": "Gruppe konnte nicht umbenannt werden",
-          "groupRenameFailedDesc": "Orca konnte den neuen Namen nicht mit dem Host der Gruppe bestätigen. Die Gruppe nach dem Wiederverbinden erneut prüfen.",
           "failedNestWorkspace": "Arbeitsbereich konnte nicht untergeordnet werden",
           "sidebarRowMissing": "Ziel existiert nicht mehr",
           "failedUnnestWorkspace": "Unterordnung des Arbeitsbereichs konnte nicht aufgehoben werden",

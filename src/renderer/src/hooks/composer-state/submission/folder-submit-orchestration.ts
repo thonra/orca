@@ -1,3 +1,4 @@
+import { getProjectGroupDefaultWorkingDirectory } from '../../../../../shared/project/groups/project-groups'
 import { projectGroupHookOwner } from '../../../../../shared/workspace-setup/hooks/workspace-hook-owner'
 import { getRepoExecutionHostId } from '../../../../../shared/execution-host/execution-host'
 import { PROJECT_GROUP_FOLDER_SETUP_RUNTIME_CAPABILITY } from '../../../../../shared/remote-runtime/protocol/worktree-runtime-capabilities'
@@ -81,7 +82,11 @@ export function useFolderSubmitOrchestration(input: FolderSubmitOrchestrationInp
 
   const submitFolderTarget = useCallback(
     async (requestedAgent: TuiAgent | null, options?: QuickSubmitOptions): Promise<void> => {
-      if (!selectedProjectGroup?.parentPath || folderCreateDisabled) {
+      if (
+        !selectedProjectGroup ||
+        !getProjectGroupDefaultWorkingDirectory(selectedProjectGroup) ||
+        folderCreateDisabled
+      ) {
         return
       }
       setCreateError(null)
@@ -110,14 +115,16 @@ export function useFolderSubmitOrchestration(input: FolderSubmitOrchestrationInp
         if (isSubmissionCancelled()) {
           return
         }
-        const policySettlement = await settleComposerSubmit(
-          groupSetup.waitForStartupPolicySave(),
-          isSubmissionCancelled
-        )
-        if (policySettlement.status === 'cancelled' || !policySettlement.value) {
-          return
-        }
         const owner = projectGroupHookOwner(selectedProjectGroup)
+        if (owner) {
+          const policySettlement = await settleComposerSubmit(
+            groupSetup.waitForStartupPolicySave(),
+            isSubmissionCancelled
+          )
+          if (policySettlement.status === 'cancelled' || !policySettlement.value) {
+            return
+          }
+        }
         const setupSupported = await resolveFolderSetupSupported(
           owner,
           PROJECT_GROUP_FOLDER_SETUP_RUNTIME_CAPABILITY

@@ -1,4 +1,5 @@
 import { projectHostSetupProjectionFromRepos } from '../../../../../shared/project/host-setup/project-host-setup-projection'
+import { getProjectGroupDefaultWorkingDirectory } from '../../../../../shared/project/groups/project-groups'
 import type { ProjectGroup } from '../../../../../shared/project/groups/project-group-types'
 import type { Project, ProjectHostSetup } from '../../../../../shared/project/project-types'
 import type { Repo } from '../../../../../shared/repository/repo-types'
@@ -253,10 +254,6 @@ export function getProjectGroupIdFromNewWorkspaceOptionId(optionId: string): str
     : null
 }
 
-function getProjectGroupDetail(group: ProjectGroup): string {
-  return group.parentPath?.trim() || 'Repo group'
-}
-
 /** Require actionable hosts for folder selection, draft restore and retention of an existing pick. */
 export function findActionableFolderProjectGroup({
   projectGroups,
@@ -274,7 +271,7 @@ export function findActionableFolderProjectGroup({
     projectGroups.find(
       (group) =>
         group.id === groupId &&
-        Boolean(group.parentPath?.trim()) &&
+        getProjectGroupDefaultWorkingDirectory(group) &&
         actionableHostIds.has(getRepoExecutionHostId(group))
     ) ?? null
   )
@@ -286,22 +283,24 @@ export function buildNewWorkspaceCreateTargetOptions({
 }: BuildNewWorkspaceCreateTargetOptionsInput): NewWorkspaceProjectOption[] {
   const projectOptions = buildNewWorkspaceProjectOptions(projectInput)
   const liveHostIds = projectInput.hosts ? new Set(projectInput.hosts.map((host) => host.id)) : null
-  const groupOptions = projectGroups
-    .filter(
-      (group) =>
-        Boolean(group.parentPath?.trim()) &&
-        (!liveHostIds || liveHostIds.has(getRepoExecutionHostId(group)))
-    )
-    .map((group) => ({
-      kind: 'project-group' as const,
-      id: getProjectGroupOptionId(group.id),
-      projectGroupId: group.id,
-      displayName: group.name,
-      badgeColor: group.color ?? 'var(--muted-foreground)',
-      detail: getProjectGroupDetail(group),
-      parentPath: group.parentPath?.trim() ?? '',
-      connectionId: group.connectionId ?? null
-    }))
+  const groupOptions = projectGroups.flatMap((group) => {
+    const path = getProjectGroupDefaultWorkingDirectory(group)
+    if (!path || (liveHostIds && !liveHostIds.has(getRepoExecutionHostId(group)))) {
+      return []
+    }
+    return [
+      {
+        kind: 'project-group' as const,
+        id: getProjectGroupOptionId(group.id),
+        projectGroupId: group.id,
+        displayName: group.name,
+        badgeColor: group.color ?? 'var(--muted-foreground)',
+        detail: path,
+        parentPath: path,
+        connectionId: group.connectionId ?? null
+      }
+    ]
+  })
 
   return [...projectOptions, ...groupOptions].sort(
     (a, b) =>

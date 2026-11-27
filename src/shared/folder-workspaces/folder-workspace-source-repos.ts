@@ -26,7 +26,7 @@ export function getFolderSourceRepos(
   projectGroups: readonly ProjectGroup[],
   projectGroup: ProjectGroup | null
 ): Repo[] {
-  if (!projectGroup?.parentPath) {
+  if (!projectGroup) {
     return EMPTY_REPOS
   }
   const folderPath = projectGroup.parentPath
@@ -37,6 +37,6 @@ export function getFolderSourceRepos(
       isGitRepoKind(repo) &&
       getRepoExecutionHostId(repo) === projectGroupHostId &&
       ((typeof repo.projectGroupId === 'string' && groupIds.has(repo.projectGroupId)) ||
-        isPathInsideOrEqual(folderPath, repo.path))
+        (folderPath !== null && isPathInsideOrEqual(folderPath, repo.path)))
   )
 }

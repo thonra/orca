@@ -7653,7 +7653,18 @@
           "4a64e78822": "Saving...",
           "defaultGroupName": "{{name}} group",
           "create": "Create",
-          "rename": "Rename"
+          "newGroupTitle": "New Group",
+          "newGroupDescription": "You can add projects after creating the group.",
+          "editTitle": "Edit Group",
+          "save": "Save",
+          "pickFailed": "Could not open the folder picker.",
+          "cwdUnsupported": "Update the Orca host to set a default working directory.",
+          "cwdAbsolute": "Enter an absolute folder path.",
+          "saveFailed": "Orca could not confirm that the group was saved. Check the group and try again.",
+          "defaultWorkingDirectory": "Default working directory",
+          "browse": "Browse…",
+          "cwdRemoteHint": "Optional. Used by new Folder Workspaces on {{host}}.",
+          "cwdHint": "Optional. Used by new Folder Workspaces in this group."
         },
         "RemoteFileBrowser": {
           "2300612806": "Type to filter or enter a path…",
@@ -7781,7 +7792,8 @@
           "92154beb7e": "New workspace",
           "addProject": "Add project",
           "expandAllProjects": "Expand all projects",
-          "collapseAllProjects": "Collapse all projects"
+          "collapseAllProjects": "Collapse all projects",
+          "newGroup": "New Group…"
         },
         "SidebarNav": {
           "80611a8b10": "Search",
@@ -8076,9 +8088,7 @@
           "hostAuthNeeded": "Authentication needed",
           "hostDisconnected": "Disconnected",
           "d880ea0744": "Create a group and move this project into it.",
-          "bc1460beb3": "Update the group name shown in the sidebar.",
           "13757c053c": "New Project Group",
-          "f9dc6cc5d3": "Rename Project Group",
           "370c6a55dd": "Clear Filters",
           "b7acbf038b": "No workspaces found",
           "c83968f87f": "Remove Project",
@@ -8090,7 +8100,6 @@
           "2ef41bf9a7": "Project actions",
           "609633a9e6": "Project actions for {{value0}}",
           "902115cdbe": "Delete group",
-          "4d7b73658c": "Rename group",
           "79465e9034": "Group actions for {{value0}}",
           "bfbedc547b": "Worktrees",
           "bb85cd86ba": "Create workspace for {{value0}}",
@@ -8098,8 +8107,6 @@
           "b667b59632": "Some projects could not be removed from Orca",
           "groupDeleteFailed": "Failed to delete group",
           "groupDeleteFailedDesc": "Something went wrong while deleting the group. No projects were removed.",
-          "groupRenameFailed": "Failed to rename group",
-          "groupRenameFailedDesc": "Orca could not confirm the new name with the group's host. Recheck the group after reconnecting.",
           "failedNestWorkspace": "Failed to nest workspace",
           "sidebarRowMissing": "Target no longer exists",
           "failedUnnestWorkspace": "Failed to unnest workspace",
@@ -8125,7 +8132,9 @@
           "hostVmSetupFailed": "Setup failed",
           "hostVmSuspended": "Suspended",
           "hostVmWaking": "Waking…",
-          "hostVmProvisioning": "Provisioning…"
+          "hostVmProvisioning": "Provisioning…",
+          "editProjectGroup": "Edit Group…",
+          "setProjectGroupWorkingDirectory": "Set working directory…"
         },
         "WorktreeMetaDialog": {
           "3db0a2a593": "Cancel",

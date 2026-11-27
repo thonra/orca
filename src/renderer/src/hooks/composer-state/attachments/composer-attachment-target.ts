@@ -2,6 +2,7 @@ import {
   getRepoExecutionHostId,
   parseExecutionHostId
 } from '../../../../../shared/execution-host/execution-host'
+import { getProjectGroupDefaultWorkingDirectory } from '../../../../../shared/project/groups/project-groups'
 import type { Repo } from '../../../../../shared/repository/repo-types'
 import { getRepoMainWorktreeId } from '../../../../../shared/worktree/id'
 import type { ComposerModel } from '../composer-model'
@@ -18,7 +19,7 @@ export function resolveComposerAttachmentTarget(input: TargetInput) {
   const repoPath = input.selectedRepoPath ?? null
   return {
     hostId,
-    path: group ? group.parentPath : repoPath,
+    path: group ? getProjectGroupDefaultWorkingDirectory(group) : repoPath,
     // Why: a paired server resolves files.* by worktree id; a bare path never matches one (#16558).
     worktreeId:
       !group && input.selectedRepo && repoPath

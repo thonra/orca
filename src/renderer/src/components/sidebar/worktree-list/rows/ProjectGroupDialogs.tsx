@@ -1,5 +1,7 @@
 import React from 'react'
 import { useTranslate } from '@/i18n/use-translate'
+import { getRepoExecutionHostId } from '../../../../../../shared/execution-host/execution-host'
+import { getProjectGroupDefaultWorkingDirectory } from '../../../../../../shared/project/groups/project-groups'
 import { findRepoForHost } from '@/store/repos/repo-host-identity'
 import type { AppState } from '@/store/types'
 import type { Repo } from '../../../../../../shared/repository/repo-types'
@@ -30,49 +32,56 @@ export function SidebarWorktreeListDialogs({
 }): React.JSX.Element {
   const t = useTranslate()
   const { nameDialog, setNameDialog, deleteDialog, setDeleteDialog } = dialogs
+  const editDialog = nameDialog?.type === 'edit' ? nameDialog : null
   return (
     <>
-      <ProjectGroupNameDialog
-        open={nameDialog !== null}
-        title={
-          nameDialog?.type === 'rename'
-            ? t('auto.components.sidebar.WorktreeList.f9dc6cc5d3', 'Rename Project Group')
-            : t('auto.components.sidebar.WorktreeList.13757c053c', 'New Project Group')
-        }
-        description={
-          nameDialog?.type === 'rename'
-            ? t(
-                'auto.components.sidebar.WorktreeList.bc1460beb3',
-                'Update the group name shown in the sidebar.'
-              )
-            : t(
-                'auto.components.sidebar.WorktreeList.d880ea0744',
-                'Create a group and move this project into it.'
-              )
-        }
-        initialName={
-          nameDialog?.type === 'rename'
-            ? nameDialog.currentName
-            : nameDialog
-              ? t(
+      {nameDialog ? (
+        <ProjectGroupNameDialog
+          open
+          title={
+            editDialog
+              ? t('auto.components.sidebar.ProjectGroupNameDialog.editTitle', 'Edit Group')
+              : t('auto.components.sidebar.WorktreeList.13757c053c', 'New Project Group')
+          }
+          description={
+            nameDialog.type === 'edit'
+              ? undefined
+              : t(
+                  'auto.components.sidebar.WorktreeList.d880ea0744',
+                  'Create a group and move this project into it.'
+                )
+          }
+          initialName={
+            nameDialog.type === 'edit'
+              ? nameDialog.group.name
+              : t(
                   'auto.components.sidebar.ProjectGroupNameDialog.defaultGroupName',
                   '{{name}} group',
                   { name: nameDialog.repo.displayName }
                 )
-              : ''
-        }
-        confirmLabel={
-          nameDialog?.type === 'rename'
-            ? t('auto.components.sidebar.ProjectGroupNameDialog.rename', 'Rename')
-            : t('auto.components.sidebar.ProjectGroupNameDialog.create', 'Create')
-        }
-        onOpenChange={(open) => {
-          if (!open) {
-            setNameDialog(null)
           }
-        }}
-        onSubmit={dialogs.handleSubmitProjectGroupName}
-      />
+          workingDirectory={
+            editDialog
+              ? {
+                  initialPath: getProjectGroupDefaultWorkingDirectory(editDialog.group) ?? '',
+                  hostId: getRepoExecutionHostId(editDialog.group),
+                  focus: editDialog.focusWorkingDirectory
+                }
+              : undefined
+          }
+          confirmLabel={
+            editDialog
+              ? t('auto.components.sidebar.ProjectGroupNameDialog.save', 'Save')
+              : t('auto.components.sidebar.ProjectGroupNameDialog.create', 'Create')
+          }
+          onOpenChange={(open) => {
+            if (!open) {
+              setNameDialog(null)
+            }
+          }}
+          onSubmit={dialogs.handleSubmitProjectGroupName}
+        />
+      ) : null}
       <SuppressExternalWorktreeInboxDialog
         open={suppressExternalWorktreeInboxRepoId !== null}
         repoDisplayName={

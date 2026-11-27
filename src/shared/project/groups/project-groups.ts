@@ -11,9 +11,17 @@ export function normalizeProjectGroupName(name: string, fallback = 'Untitled gro
   return trimmed.length > 0 ? trimmed : fallback
 }
 
+export function getProjectGroupDefaultWorkingDirectory(
+  group: Pick<ProjectGroup, 'parentPath' | 'defaultWorkingDirectory'> | null | undefined
+): string | null {
+  const path = group?.defaultWorkingDirectory
+  return (path === undefined ? group?.parentPath : path)?.trim() || null
+}
+
 export function createProjectGroup(input: {
   name: string
   parentPath?: string | null
+  defaultWorkingDirectory?: string | null
   connectionId?: string | null
   parentGroupId?: string | null
   createdFrom: ProjectGroupCreatedFrom
@@ -25,6 +33,9 @@ export function createProjectGroup(input: {
     id: createNonSecureContextUuid(),
     name: normalizeProjectGroupName(input.name),
     parentPath: input.parentPath ?? null,
+    ...(input.defaultWorkingDirectory === undefined
+      ? {}
+      : { defaultWorkingDirectory: input.defaultWorkingDirectory?.trim() || null }),
     connectionId: input.connectionId ?? null,
     parentGroupId: input.parentGroupId ?? null,
     createdFrom: input.createdFrom,
@@ -66,6 +77,9 @@ export function normalizeProjectGroups(value: unknown): ProjectGroup[] {
           }
         : {}),
       parentPath: typeof raw.parentPath === 'string' ? raw.parentPath : null,
+      ...(raw.defaultWorkingDirectory === null || typeof raw.defaultWorkingDirectory === 'string'
+        ? { defaultWorkingDirectory: raw.defaultWorkingDirectory?.trim() || null }
+        : {}),
       connectionId:
         typeof raw.connectionId === 'string'
           ? raw.connectionId

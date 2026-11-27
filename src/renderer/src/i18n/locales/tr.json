@@ -7586,8 +7586,7 @@
           "83dfbc5313": "Grup Adı",
           "4a64e78822": "Kaydediliyor...",
           "defaultGroupName": "{{name}} grubu",
-          "create": "Oluştur",
-          "rename": "Yeniden adlandır"
+          "create": "Oluştur"
         },
         "RemoteFileBrowser": {
           "2300612806": "Filtrelemek için yazın veya bir yol girin…",
@@ -8005,9 +8004,7 @@
           "hostAuthNeeded": "Kimlik doğrulama gerekli",
           "hostDisconnected": "Bağlantı kesildi",
           "d880ea0744": "Bir grup oluşturun ve bu projeyi içine taşıyın.",
-          "bc1460beb3": "Kenar çubuğunda gösterilen grup adını güncelleyin.",
           "13757c053c": "Yeni Proje Grubu",
-          "f9dc6cc5d3": "Proje Grubunu Yeniden Adlandır",
           "370c6a55dd": "Filtreleri Temizle",
           "b7acbf038b": "Çalışma alanı bulunamadı",
           "c83968f87f": "Projeyi Kaldır",
@@ -8019,7 +8016,6 @@
           "2ef41bf9a7": "Proje işlemleri",
           "609633a9e6": "{{value0}} için proje işlemleri",
           "902115cdbe": "Grubu sil",
-          "4d7b73658c": "Grubu yeniden adlandır",
           "79465e9034": "{{value0}} için grup işlemleri",
           "bfbedc547b": "Worktree'ler",
           "bb85cd86ba": "{{value0}} için çalışma alanı oluştur",
@@ -8027,8 +8023,6 @@
           "b667b59632": "Bazı projeler Orca'dan kaldırılamadı",
           "groupDeleteFailed": "Grup silinemedi",
           "groupDeleteFailedDesc": "Grup silinirken bir sorun oluştu. Hiçbir proje kaldırılmadı.",
-          "groupRenameFailed": "Grup yeniden adlandırılamadı",
-          "groupRenameFailedDesc": "Orca, yeni adı grubun host'uyla doğrulayamadı. Yeniden bağlandıktan sonra grubu tekrar kontrol edin.",
           "failedNestWorkspace": "Çalışma alanı iç içe yerleştirilemedi",
           "sidebarRowMissing": "Hedef artık mevcut değil",
           "failedUnnestWorkspace": "Çalışma alanının iç içe yerleşimi kaldırılamadı",

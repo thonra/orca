@@ -6,7 +6,10 @@ import type { Repo } from '../../../shared/repository/repo-types'
 import type { RepoHostTarget } from '../../../shared/repository/repo-host-identity'
 import { getRepoExecutionHostId } from '../../../shared/execution-host/execution-host'
 import { normalizeFolderWorkspaceName } from '../../../shared/folder-workspaces/folder-workspaces'
-import { getNextProjectGroupOrder } from '../../../shared/project/groups/project-groups'
+import {
+  getNextProjectGroupOrder,
+  getProjectGroupDefaultWorkingDirectory
+} from '../../../shared/project/groups/project-groups'
 import { normalizeStoredTaskSourceContext } from '../../../shared/work-items/task-source-context'
 import { normalizeWorkspaceLinkedItem } from '../../../shared/workspace-attachments/workspace-linked-item'
 import { isWorkspaceLinkedItemSourceContextMatch } from '../../../shared/workspace-attachments/workspace-linked-item-source-context'
@@ -68,7 +71,7 @@ export class FolderWorkspacePersistenceOperations {
     const folderPath =
       typeof input.folderPath === 'string' && input.folderPath.trim().length > 0
         ? input.folderPath
-        : group?.parentPath?.trim()
+        : getProjectGroupDefaultWorkingDirectory(group)
     if (!group || !folderPath) {
       throw new Error('Folder-backed project group not found.')
     }

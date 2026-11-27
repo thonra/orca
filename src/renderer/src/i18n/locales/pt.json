@@ -13280,9 +13280,7 @@
           "hostAuthNeeded": "Autenticação necessária",
           "hostDisconnected": "Desconectado",
           "d880ea0744": "Crie um grupo e mova este projeto para dentro dele.",
-          "bc1460beb3": "Atualize o nome do grupo exibido na barra lateral.",
           "13757c053c": "Novo Grupo de Projeto",
-          "f9dc6cc5d3": "Renomear Grupo de Projeto",
           "370c6a55dd": "Limpar Filtros",
           "b7acbf038b": "Nenhum espaço de trabalho encontrado",
           "c83968f87f": "Remover Projeto",
@@ -13294,7 +13292,6 @@
           "2ef41bf9a7": "Ações do projeto",
           "609633a9e6": "Ações do projeto para {{value0}}",
           "902115cdbe": "Excluir grupo",
-          "4d7b73658c": "Renomear grupo",
           "79465e9034": "Ações do grupo para {{value0}}",
           "bfbedc547b": "Worktrees",
           "bb85cd86ba": "Criar espaço de trabalho para {{value0}}",
@@ -13302,8 +13299,6 @@
           "b667b59632": "Alguns projetos não puderam ser removidos do Orca",
           "groupDeleteFailed": "Falha ao excluir o grupo",
           "groupDeleteFailedDesc": "Algo deu errado ao excluir o grupo. Nenhum projeto foi removido.",
-          "groupRenameFailed": "Falha ao renomear o grupo",
-          "groupRenameFailedDesc": "O Orca não conseguiu confirmar o novo nome com o host do grupo. Verifique o grupo novamente após reconectar.",
           "failedNestWorkspace": "Falha ao aninhar o espaço de trabalho",
           "sidebarRowMissing": "O destino não existe mais",
           "failedUnnestWorkspace": "Falha ao desaninhar o espaço de trabalho",
@@ -14381,8 +14376,7 @@
           "83dfbc5313": "Nome do Grupo",
           "4a64e78822": "Salvando...",
           "defaultGroupName": "Grupo {{name}}",
-          "create": "Criar",
-          "rename": "Renomear"
+          "create": "Criar"
         },
         "WorkspaceKanbanStatusLane": {
           "8ad104642b": "Vazio",

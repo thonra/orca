@@ -13,6 +13,7 @@ import {
   buildAgentStartupPlan,
   type AgentStartupPlan
 } from '../../../../../../shared/agent-launch/startup/tui-agent-startup'
+import { getProjectGroupDefaultWorkingDirectory } from '../../../../../../shared/project/groups/project-groups'
 import type { ProjectGroup } from '../../../../../../shared/project/groups/project-group-types'
 import type { SessionOptionValue } from '../../../../../../shared/native-chat/input/native-chat-session-options'
 import type { TuiAgent } from '../../../../../../shared/agent-launch/catalog/tui-agent'
@@ -22,7 +23,10 @@ import type { AgentStartupShell } from '../../../../../../shared/agent-launch/st
 export function getFolderWorkspaceAgentLaunchFact(
   state: Pick<AppState, 'sshConnectionStates' | 'sshStateByEnvironment'>,
   statuses: RuntimeStatuses,
-  projectGroup: Pick<ProjectGroup, 'connectionId' | 'executionHostId' | 'parentPath'>
+  projectGroup: Pick<
+    ProjectGroup,
+    'connectionId' | 'executionHostId' | 'parentPath' | 'defaultWorkingDirectory'
+  >
 ): ExecutionHostPlatformFact {
   return resolveRepoExecutionHostPlatform(
     state,
@@ -30,7 +34,7 @@ export function getFolderWorkspaceAgentLaunchFact(
     {
       connectionId: projectGroup.connectionId,
       executionHostId: projectGroup.executionHostId,
-      path: projectGroup.parentPath?.trim() ?? ''
+      path: getProjectGroupDefaultWorkingDirectory(projectGroup) ?? ''
     },
     () => undefined
   )

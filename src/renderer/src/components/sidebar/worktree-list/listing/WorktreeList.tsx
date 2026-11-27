@@ -10,6 +10,7 @@ import {
 } from '@/store/slices/worktrees/listing/use-worktree-catalog'
 import { useProjectHostSetupProjection } from '@/store/projects/use-project-host-setup-projection'
 import { useRepoMap } from '@/store/repos/use-repository-catalog'
+import { getProjectGroupDefaultWorkingDirectory } from '../../../../../../shared/project/groups/project-groups'
 import type { ProjectGroup } from '../../../../../../shared/project/groups/project-group-types'
 import type { Repo } from '../../../../../../shared/repository/repo-types'
 import { openHeaderCreateComposer } from '../rows/header-create-workspace-target'
@@ -234,7 +235,7 @@ const WorktreeList = React.memo(function WorktreeList({
   )
   const handleCreateFolderWorkspace = useCallback(
     (projectGroup: ProjectGroup) => {
-      if (!projectGroup.parentPath) {
+      if (!getProjectGroupDefaultWorkingDirectory(projectGroup)) {
         return
       }
       openModal('new-workspace-composer', {
@@ -349,7 +350,7 @@ const WorktreeList = React.memo(function WorktreeList({
         handleCreateGroupFromRepo={projectGroupDialogs.handleCreateGroupFromRepo}
         handleMoveProjectToGroup={projectGroupDialogs.handleMoveProjectToGroup}
         handleRemoveProjectFromGroup={projectGroupDialogs.handleRemoveProjectFromGroup}
-        handleRenameProjectGroup={projectGroupDialogs.handleRenameProjectGroup}
+        handleEditProjectGroup={projectGroupDialogs.handleEditProjectGroup}
         handleDeleteProjectGroup={projectGroupDialogs.handleDeleteProjectGroup}
         handleRefreshProjectGroup={projectGroupDialogs.handleRefreshProjectGroup}
         handleCreateFolderWorkspace={handleCreateFolderWorkspace}

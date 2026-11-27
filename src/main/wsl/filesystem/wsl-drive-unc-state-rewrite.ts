@@ -261,9 +261,19 @@ function withConvertedGroupFolders(
         .filter((folder) => folder.projectGroupId === group.id)
         .map((folder) => folderWorkspaceIds.has(folder.id) && isLocalFolderWorkspace(state, folder))
     ]
+    if (members.length === 0 || !members.every(Boolean)) {
+      return group
+    }
     const parentPath = group.parentPath && wslUncDrivePathToWindows(group.parentPath, distro)
-    return parentPath && members.length > 0 && members.every(Boolean)
-      ? { ...group, parentPath }
+    const defaultWorkingDirectory =
+      group.defaultWorkingDirectory &&
+      wslUncDrivePathToWindows(group.defaultWorkingDirectory, distro)
+    return parentPath || defaultWorkingDirectory
+      ? {
+          ...group,
+          ...(parentPath ? { parentPath } : {}),
+          ...(defaultWorkingDirectory ? { defaultWorkingDirectory } : {})
+        }
       : group
   })
 }

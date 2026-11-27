@@ -4,10 +4,7 @@ import { type BrowserWindow, ipcMain } from 'electron'
 import type { Store } from '../../persistence/loading-store/store'
 import type { Repo } from '../../../shared/repository/repo-types'
 import type { RepoHostTarget } from '../../../shared/repository/repo-host-identity'
-import type {
-  NestedRepoScanResult,
-  ProjectGroup
-} from '../../../shared/project/groups/project-group-types'
+import type { NestedRepoScanResult } from '../../../shared/project/groups/project-group-types'
 import { notifyReposChanged } from './repos-changed-notification'
 import {
   ProjectGroupCancelNestedScanArgs,
@@ -29,7 +26,10 @@ import { runtimeVisibleProjectGroups } from '../../runtime/workspaces/catalog/ru
 export function registerProjectGroupHandlers(
   mainWindow: BrowserWindow,
   store: Store,
-  runtime: Pick<OrcaRuntimeService, 'checkProjectGroupHooks'>
+  runtime: Pick<
+    OrcaRuntimeService,
+    'checkProjectGroupHooks' | 'createProjectGroup' | 'updateProjectGroup' | 'updateProjectGroups'
+  >
 ): void {
   ipcMain.handle('projectGroups:checkHooks', (_event, rawArgs: unknown) => {
     const args = parseProjectGroupIpcArgs(
@@ -41,47 +41,31 @@ export function registerProjectGroupHandlers(
   })
   ipcMain.handle('projectGroups:list', () => runtimeVisibleProjectGroups(store))
 
-  ipcMain.handle('projectGroups:create', (_event, rawArgs: unknown): ProjectGroup => {
+  ipcMain.handle('projectGroups:create', (_event, rawArgs: unknown) => {
     const args = parseProjectGroupIpcArgs(
       ProjectGroupCreateArgs,
       rawArgs,
       'invalid_project_group_create_args'
     )
-    const group = store.createProjectGroup({
-      name: args.name,
-      parentPath: args.parentPath ?? null,
-      connectionId: args.connectionId ?? null,
-      parentGroupId: args.parentGroupId ?? null,
-      createdFrom: args.createdFrom ?? 'manual'
-    })
-    notifyReposChanged(mainWindow)
-    return group
+    return runtime.createProjectGroup(args)
   })
 
-  ipcMain.handle('projectGroups:update', (_event, rawArgs: unknown): ProjectGroup | null => {
+  ipcMain.handle('projectGroups:update', (_event, rawArgs: unknown) => {
     const args = parseProjectGroupIpcArgs(
       ProjectGroupUpdateArgs,
       rawArgs,
       'invalid_project_group_update_args'
     )
-    const updated = store.updateProjectGroup(args.groupId, args.updates)
-    if (updated) {
-      notifyReposChanged(mainWindow)
-    }
-    return updated
+    return runtime.updateProjectGroup(args.groupId, args.updates)
   })
 
-  ipcMain.handle('projectGroups:updateMany', (_event, rawArgs: unknown): ProjectGroup[] | null => {
+  ipcMain.handle('projectGroups:updateMany', (_event, rawArgs: unknown) => {
     const args = parseProjectGroupIpcArgs(
       ProjectGroupUpdateManyArgs,
       rawArgs,
       'invalid_project_group_update_many_args'
     )
-    const updated = store.updateProjectGroups(args.mutations)
-    if (updated?.length) {
-      notifyReposChanged(mainWindow)
-    }
-    return updated
+    return runtime.updateProjectGroups(args.mutations)
   })
 
   ipcMain.handle('projectGroups:delete', (_event, rawArgs: unknown): boolean => {

@@ -20,7 +20,8 @@ export function createProjectGroupBatchUpdateAction(
   set: Parameters<StateCreator<AppState>>[0],
   get: Parameters<StateCreator<AppState>>[1]
 ): RepoSlice['updateProjectGroups'] {
-  return async (mutations) => {
+  return async (mutations, options) => {
+    const throwOnError = options?.throwOnError && mutations.length === 1
     const state = get()
     const batches = new Map<
       string,
@@ -46,13 +47,16 @@ export function createProjectGroupBatchUpdateAction(
     const results = await Promise.all(
       [...batches.values()].map(async ({ target, mutations }) => {
         try {
-          const groups = await persistProjectGroupUpdates(target, mutations)
+          const groups = await persistProjectGroupUpdates(target, mutations, throwOnError)
           return groups.map((group, index) => ({
             group: group ? adoptFromEndpoint(target, { kind: 'projectGroup', row: group }) : null,
             ownerHostId: mutations[index].ownerHostId,
             groupId: mutations[index].groupId
           }))
         } catch (err) {
+          if (throwOnError) {
+            throw err
+          }
           console.error('Failed to update project groups:', err)
           return mutations.map(({ ownerHostId, groupId }) => ({
             group: null,

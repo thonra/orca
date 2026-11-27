@@ -7088,8 +7088,7 @@
           "83dfbc5313": "Nom du groupe",
           "4a64e78822": "Enregistrement...",
           "defaultGroupName": "Groupe {{name}}",
-          "create": "Créer",
-          "rename": "Renommer"
+          "create": "Créer"
         },
         "RemoteFileBrowser": {
           "2300612806": "Tapez pour filtrer ou saisissez un chemin…",
@@ -7521,9 +7520,7 @@
           "hostAuthNeeded": "Authentification requise",
           "hostDisconnected": "Déconnecté",
           "d880ea0744": "Créez un groupe et déplacez-y ce projet.",
-          "bc1460beb3": "Modifiez le nom du groupe affiché dans la barre latérale.",
           "13757c053c": "Nouveau groupe de projets",
-          "f9dc6cc5d3": "Renommer le groupe de projets",
           "370c6a55dd": "Réinitialiser les filtres",
           "b7acbf038b": "Aucun espace de travail trouvé",
           "c83968f87f": "Retirer le projet",
@@ -7535,7 +7532,6 @@
           "2ef41bf9a7": "Actions du projet",
           "609633a9e6": "Actions du projet pour {{value0}}",
           "902115cdbe": "Supprimer le groupe",
-          "4d7b73658c": "Renommer le groupe",
           "79465e9034": "Actions du groupe pour {{value0}}",
           "bfbedc547b": "Worktrees",
           "bb85cd86ba": "Créer un espace de travail pour {{value0}}",
@@ -7543,8 +7539,6 @@
           "b667b59632": "Certains projets n'ont pas pu être retirés d'Orca",
           "groupDeleteFailed": "Échec de la suppression du groupe",
           "groupDeleteFailedDesc": "Une erreur est survenue lors de la suppression du groupe. Aucun projet n'a été retiré.",
-          "groupRenameFailed": "Échec du renommage du groupe",
-          "groupRenameFailedDesc": "Orca n'a pas pu confirmer le nouveau nom auprès de l'hôte du groupe. Revérifiez le groupe après reconnexion.",
           "failedNestWorkspace": "Échec de l'imbrication de l'espace de travail",
           "sidebarRowMissing": "La cible n'existe plus",
           "failedUnnestWorkspace": "Échec de la désimbrication de l'espace de travail",

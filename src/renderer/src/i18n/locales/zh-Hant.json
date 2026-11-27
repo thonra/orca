@@ -7189,7 +7189,18 @@
           "4a64e78822": "儲存中...",
           "defaultGroupName": "{{name}} 群組",
           "create": "建立",
-          "rename": "重新命名"
+          "newGroupTitle": "新增專案群組",
+          "newGroupDescription": "建立後可將專案加入群組。",
+          "editTitle": "編輯專案群組",
+          "save": "儲存",
+          "pickFailed": "無法開啟資料夾選擇器。",
+          "cwdUnsupported": "請更新 Orca 主機後再設定預設工作目錄。",
+          "cwdAbsolute": "請輸入資料夾的絕對路徑。",
+          "saveFailed": "Orca 無法確認專案群組已儲存。請檢查群組後再試一次。",
+          "defaultWorkingDirectory": "預設工作目錄",
+          "browse": "瀏覽…",
+          "cwdRemoteHint": "選填。用於在 {{host}} 上新增資料夾工作區。",
+          "cwdHint": "選填。用於在此群組中新增資料夾工作區。"
         },
         "RemoteFileBrowser": {
           "2300612806": "輸入文字以篩選或輸入路徑…",
@@ -7314,7 +7325,8 @@
           "92154beb7e": "新工作區",
           "addProject": "新增專案",
           "expandAllProjects": "展開所有專案",
-          "collapseAllProjects": "收合所有專案"
+          "collapseAllProjects": "收合所有專案",
+          "newGroup": "新增專案群組…"
         },
         "SidebarNav": {
           "80611a8b10": "搜尋",
@@ -7603,9 +7615,7 @@
           "hostAuthNeeded": "需要身分驗證",
           "hostDisconnected": "已斷開連線",
           "d880ea0744": "建立一個群組並將該專案移入其中。",
-          "bc1460beb3": "更新側邊欄中顯示的群組名稱。",
           "13757c053c": "新專案群組",
-          "f9dc6cc5d3": "重新命名專案群組",
           "370c6a55dd": "清除篩選條件",
           "b7acbf038b": "未找到工作區",
           "c83968f87f": "移除專案",
@@ -7617,7 +7627,6 @@
           "2ef41bf9a7": "專案操作",
           "609633a9e6": "{{value0}} 的專案操作",
           "902115cdbe": "刪除群組",
-          "4d7b73658c": "重新命名群組",
           "79465e9034": "{{value0}} 的群組操作",
           "bfbedc547b": "工作樹",
           "bb85cd86ba": "為 {{value0}} 建立工作區",
@@ -7625,8 +7634,6 @@
           "b667b59632": "部分專案無法從 Orca 中移除",
           "groupDeleteFailed": "刪除群組失敗",
           "groupDeleteFailedDesc": "刪除群組時出現問題。沒有專案被移除。",
-          "groupRenameFailed": "重新命名群組失敗",
-          "groupRenameFailedDesc": "Orca 無法與該群組的主機確認新名稱。重新連線後重新檢查該群組。",
           "failedNestWorkspace": "無法將工作區設為子工作區",
           "sidebarRowMissing": "目標不再存在",
           "failedUnnestWorkspace": "無法將工作區移出上層工作區",
@@ -7647,7 +7654,9 @@
           "hostVmSetupFailed": "設定失敗",
           "hostVmSuspended": "已暫停",
           "hostVmWaking": "正在喚醒…",
-          "hostVmProvisioning": "正在佈建…"
+          "hostVmProvisioning": "正在佈建…",
+          "editProjectGroup": "編輯專案群組…",
+          "setProjectGroupWorkingDirectory": "設定工作目錄…"
         },
         "WorktreeMetaDialog": {
           "3db0a2a593": "取消",

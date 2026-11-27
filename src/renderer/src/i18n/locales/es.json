@@ -6755,8 +6755,7 @@
           "83dfbc5313": "Nombre del grupo",
           "4a64e78822": "Guardando...",
           "defaultGroupName": "Grupo {{name}}",
-          "create": "Crear",
-          "rename": "Renombrar"
+          "create": "Crear"
         },
         "RemoteFileBrowser": {
           "2300612806": "Escribe para filtrar o introducir una ruta...",
@@ -7178,9 +7177,7 @@
         },
         "WorktreeList": {
           "d880ea0744": "Crea un grupo y mueve este proyecto a él.",
-          "bc1460beb3": "Actualiza el nombre del grupo que se muestra en la barra lateral.",
           "13757c053c": "Nuevo grupo de proyecto",
-          "f9dc6cc5d3": "Cambiar nombre del grupo de proyectos",
           "370c6a55dd": "Limpiar filtros",
           "b7acbf038b": "No se encontraron espacios de trabajo",
           "c83968f87f": "Eliminar proyecto",
@@ -7192,7 +7189,6 @@
           "2ef41bf9a7": "Acciones del proyecto",
           "609633a9e6": "Acciones del proyecto para {{value0}}",
           "902115cdbe": "Eliminar grupo",
-          "4d7b73658c": "Cambiar nombre de grupo",
           "79465e9034": "Acciones del grupo para {{value0}}",
           "bfbedc547b": "Worktrees",
           "bb85cd86ba": "Crear espacio de trabajo para {{value0}}",
@@ -7206,8 +7202,6 @@
           "failedNestWorkspace": "No se pudo anidar el espacio de trabajo",
           "sidebarRowMissing": "El destino ya no existe",
           "failedUnnestWorkspace": "Error al expandir el espacio de trabajo",
-          "groupRenameFailed": "No se pudo cambiar el nombre del grupo",
-          "groupRenameFailedDesc": "Orca no pudo confirmar el nuevo nombre con el anfitrión del grupo. Vuelva a verificar el grupo después de volver a conectarse.",
           "hostRepairRequired": "Re-pair required",
           "showChildWorkspaces_one": "Mostrar {{count}} espacio de trabajo secundario",
           "hideChildWorkspaces_one": "Ocultar {{count}} espacio de trabajo secundario",

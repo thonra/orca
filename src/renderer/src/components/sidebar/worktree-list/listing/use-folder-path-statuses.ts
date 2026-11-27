@@ -5,6 +5,7 @@ import { useAppStore } from '@/store'
 import { selectFolderWorkspaces } from '@/store/workspaces/catalog/workspace-record-fields'
 import { useFolderWorkspacePathStatusCacheExpiryTick } from '@/lib/workspace/paths/folder-workspace-path-status-cache-expiry'
 import type { FolderWorkspace } from '../../../../../../shared/folder-workspaces/folder-workspace-types'
+import { getProjectGroupDefaultWorkingDirectory } from '../../../../../../shared/project/groups/project-groups'
 import type { ProjectGroup } from '../../../../../../shared/project/groups/project-group-types'
 import type { Repo } from '../../../../../../shared/repository/repo-types'
 import type { AppState } from '@/store/types'
@@ -134,7 +135,7 @@ export function useFolderWorkspacePathStatusRows(args: {
       }
     }
     for (const group of projectGroups) {
-      if (group.parentPath) {
+      if (getProjectGroupDefaultWorkingDirectory(group)) {
         addRequest({ scope: 'project-group' as const, projectGroupId: group.id })
       }
     }

@@ -6776,7 +6776,18 @@
           "4a64e78822": "保存中...",
           "defaultGroupName": "{{name}} 组",
           "create": "创建",
-          "rename": "重命名"
+          "newGroupTitle": "新建项目组",
+          "newGroupDescription": "创建后可向组中添加项目。",
+          "editTitle": "编辑项目组",
+          "save": "保存",
+          "pickFailed": "无法打开文件夹选择器。",
+          "cwdUnsupported": "请更新 Orca 主机后再设置默认工作目录。",
+          "cwdAbsolute": "请输入文件夹的绝对路径。",
+          "saveFailed": "Orca 无法确认项目组已保存。请检查项目组后重试。",
+          "defaultWorkingDirectory": "默认工作目录",
+          "browse": "浏览…",
+          "cwdRemoteHint": "选填。用于在 {{host}} 上新建文件夹工作区。",
+          "cwdHint": "选填。用于在此组中新建文件夹工作区。"
         },
         "RemoteFileBrowser": {
           "2300612806": "键入要搜索的内容或输入路径...",
@@ -6897,7 +6908,8 @@
           "92154beb7e": "新工作区",
           "addProject": "添加项目",
           "expandAllProjects": "展开所有项目",
-          "collapseAllProjects": "折叠所有项目"
+          "collapseAllProjects": "折叠所有项目",
+          "newGroup": "新建项目组…"
         },
         "SidebarNav": {
           "80611a8b10": "搜索",
@@ -7178,9 +7190,7 @@
         },
         "WorktreeList": {
           "d880ea0744": "创建一个组并将该项目移入其中",
-          "bc1460beb3": "更新侧栏中显示的组名称",
           "13757c053c": "新项目组",
-          "f9dc6cc5d3": "重命名项目组",
           "370c6a55dd": "清除筛选条件",
           "b7acbf038b": "未找到工作区",
           "c83968f87f": "删除项目",
@@ -7192,7 +7202,6 @@
           "2ef41bf9a7": "项目操作",
           "609633a9e6": "{{value0}} 的项目操作",
           "902115cdbe": "删除群组",
-          "4d7b73658c": "重命名组",
           "79465e9034": "{{value0}} 的分组操作",
           "bfbedc547b": "工作树",
           "bb85cd86ba": "为 {{value0}} 创建工作区",
@@ -7206,8 +7215,6 @@
           "failedNestWorkspace": "无法嵌套工作区",
           "sidebarRowMissing": "目标不再存在",
           "failedUnnestWorkspace": "展开工作区失败",
-          "groupRenameFailed": "重命名组失败",
-          "groupRenameFailedDesc": "Orca 无法与该组所属主机确认新名称，请在重新连接后检查该组",
           "hostRepairRequired": "Re-pair required",
           "showChildWorkspaces_other": "显示 {{count}} 个子工作区",
           "hideChildWorkspaces_other": "隐藏 {{count}} 个子工作区",
@@ -7225,7 +7232,9 @@
           "hostVmSetupFailed": "配置失败",
           "hostVmSuspended": "已挂起",
           "hostVmWaking": "正在唤醒…",
-          "hostVmProvisioning": "正在预配…"
+          "hostVmProvisioning": "正在预配…",
+          "editProjectGroup": "编辑项目组…",
+          "setProjectGroupWorkingDirectory": "设置工作目录…"
         },
         "WorktreeMetaDialog": {
           "3db0a2a593": "取消",

@@ -71,6 +71,7 @@ export class ProjectGroupPersistenceOperations {
   createProjectGroup(input: {
     name: string
     parentPath?: string | null
+    defaultWorkingDirectory?: string | null
     connectionId?: string | null
     parentGroupId?: string | null
     createdFrom: ProjectGroup['createdFrom']
@@ -153,6 +154,9 @@ export class ProjectGroupPersistenceOperations {
   private applyGroupUpdate(group: ProjectGroup, updates: ProjectGroupUpdate): void {
     if (updates.name !== undefined) {
       group.name = normalizeProjectGroupName(updates.name, group.name)
+    }
+    if (updates.defaultWorkingDirectory !== undefined) {
+      group.defaultWorkingDirectory = updates.defaultWorkingDirectory?.trim() || null
     }
     if (updates.isCollapsed !== undefined) {
       group.isCollapsed = updates.isCollapsed

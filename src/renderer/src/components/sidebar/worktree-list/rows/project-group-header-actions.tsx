@@ -1,5 +1,5 @@
 import React from 'react'
-import { Ellipsis, Plus, RefreshCw } from 'lucide-react'
+import { Ellipsis, FolderOpen, Pencil, Plus, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import {
@@ -8,12 +8,24 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger
+} from '@/components/ui/context-menu'
 import { cn } from '@/lib/class-names'
 import { useTranslate } from '@/i18n/use-translate'
 import { getFolderWorkspacePathStatusDescription } from '@/lib/workspace/paths/folder-workspace-path-status'
+import { getProjectGroupDefaultWorkingDirectory } from '../../../../../../shared/project/groups/project-groups'
 import type { ProjectGroup } from '../../../../../../shared/project/groups/project-group-types'
 import type { FolderWorkspacePathStatus } from '../../../../../../shared/folder-workspaces/folder-workspace-path-status'
-import type { ExecutionHostId } from '../../../../../../shared/execution-host/execution-host'
+import {
+  getRepoExecutionHostId,
+  type ExecutionHostId
+} from '../../../../../../shared/execution-host/execution-host'
+import { ProjectHeaderHostTooltip } from './ProjectHeaderHostLabel'
+import type { ProjectHeaderHostContext } from './project-header-host-context'
 import { getFolderProjectGroupRefreshHandler } from './project-group-folder-refresh'
 import { REPO_HEADER_ACTION_BUTTON_CLASS } from './repo-header-action-button-class'
 import {
@@ -22,26 +34,102 @@ import {
   stopRepoHeaderMenuEvent
 } from './header-event-guards'
 
-export function ProjectGroupHeaderMenu({
-  groupId,
-  hostId,
-  label,
-  projectGroup,
-  onRefreshProjectGroup,
-  onRename,
-  onDelete
-}: {
-  groupId: string
-  /** Owner host of the group row, so rename/delete route to the host that holds it. */
-  hostId?: ExecutionHostId
-  label: string
-  projectGroup: ProjectGroup | null
-  onRefreshProjectGroup?: (projectGroup: ProjectGroup) => void
-  onRename: (groupId: string, currentName: string, hostId?: ExecutionHostId) => void
+type ProjectGroupHeaderMenuActions = {
+  group: ProjectGroup
+  onRefresh?: (group: ProjectGroup) => void
+  onEdit: (group: ProjectGroup, focusWorkingDirectory?: boolean) => void
   onDelete: (groupId: string, groupName: string, hostId?: ExecutionHostId) => void
+}
+
+function ProjectGroupHeaderMenuItems({
+  actions,
+  context = false
+}: {
+  actions: ProjectGroupHeaderMenuActions
+  context?: boolean
 }): React.JSX.Element {
   const t = useTranslate()
-  const onRefresh = getFolderProjectGroupRefreshHandler(projectGroup, onRefreshProjectGroup)
+  const { group, onEdit, onDelete } = actions
+  const MenuItem = context ? ContextMenuItem : DropdownMenuItem
+  const onRefresh = getFolderProjectGroupRefreshHandler(group, actions.onRefresh)
+  return (
+    <>
+      {onRefresh ? (
+        <MenuItem onSelect={onRefresh}>
+          <RefreshCw className="size-3.5" />
+          {t('auto.components.sidebar.WorktreeList.refreshProjectGroup', 'Refresh projects')}
+        </MenuItem>
+      ) : null}
+      <MenuItem onSelect={() => onEdit(group)}>
+        <Pencil className="size-3.5" />
+        {t('auto.components.sidebar.WorktreeList.editProjectGroup', 'Edit Group…')}
+      </MenuItem>
+      {!getProjectGroupDefaultWorkingDirectory(group) ? (
+        <MenuItem onSelect={() => onEdit(group, true)}>
+          <FolderOpen className="size-3.5" />
+          {t(
+            'auto.components.sidebar.WorktreeList.setProjectGroupWorkingDirectory',
+            'Set working directory…'
+          )}
+        </MenuItem>
+      ) : null}
+      <MenuItem
+        variant="destructive"
+        onSelect={() => onDelete(group.id, group.name, getRepoExecutionHostId(group))}
+      >
+        {t('auto.components.sidebar.WorktreeList.902115cdbe', 'Delete group')}
+      </MenuItem>
+    </>
+  )
+}
+
+// Menu portals still bubble through the header, where the same events can drag or collapse it.
+const MENU_EVENT_GUARDS = {
+  onPointerDown: stopRepoHeaderMenuEvent,
+  onMouseDown: stopRepoHeaderMenuEvent,
+  onPointerUp: stopRepoHeaderMenuEvent,
+  onMouseUp: stopRepoHeaderMenuEvent,
+  onClick: stopRepoHeaderMenuEvent,
+  onKeyDown: stopRepoHeaderMenuEvent
+}
+
+export function ProjectGroupHeaderContextMenu({
+  actions,
+  hostContext,
+  label,
+  children
+}: {
+  actions: ProjectGroupHeaderMenuActions | null
+  hostContext: ProjectHeaderHostContext | undefined
+  label: string
+  children: React.JSX.Element
+}): React.JSX.Element {
+  const header = (
+    <ProjectHeaderHostTooltip label={label} context={hostContext}>
+      {actions ? <ContextMenuTrigger asChild>{children}</ContextMenuTrigger> : children}
+    </ProjectHeaderHostTooltip>
+  )
+  if (!actions) {
+    return header
+  }
+  return (
+    <ContextMenu>
+      {header}
+      <ContextMenuContent {...MENU_EVENT_GUARDS}>
+        <ProjectGroupHeaderMenuItems actions={actions} context />
+      </ContextMenuContent>
+    </ContextMenu>
+  )
+}
+
+export function ProjectGroupHeaderMenu({
+  actions,
+  label
+}: {
+  actions: ProjectGroupHeaderMenuActions
+  label: string
+}): React.JSX.Element {
+  const t = useTranslate()
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
@@ -63,30 +151,8 @@ export function ProjectGroupHeaderMenu({
           <Ellipsis className="size-3.5" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent
-        align="end"
-        side="bottom"
-        sideOffset={6}
-        // Why: Radix portals keep React bubbling through the project header; block menu events from arming row drag/collapse.
-        onPointerDown={stopRepoHeaderMenuEvent}
-        onMouseDown={stopRepoHeaderMenuEvent}
-        onPointerUp={stopRepoHeaderMenuEvent}
-        onMouseUp={stopRepoHeaderMenuEvent}
-        onClick={stopRepoHeaderMenuEvent}
-        onKeyDown={stopRepoHeaderMenuEvent}
-      >
-        {onRefresh ? (
-          <DropdownMenuItem onSelect={onRefresh}>
-            <RefreshCw className="size-3.5" />
-            {t('auto.components.sidebar.WorktreeList.refreshProjectGroup', 'Refresh projects')}
-          </DropdownMenuItem>
-        ) : null}
-        <DropdownMenuItem onSelect={() => onRename(groupId, label, hostId)}>
-          {t('auto.components.sidebar.WorktreeList.4d7b73658c', 'Rename group')}
-        </DropdownMenuItem>
-        <DropdownMenuItem variant="destructive" onSelect={() => onDelete(groupId, label, hostId)}>
-          {t('auto.components.sidebar.WorktreeList.902115cdbe', 'Delete group')}
-        </DropdownMenuItem>
+      <DropdownMenuContent align="end" side="bottom" sideOffset={6} {...MENU_EVENT_GUARDS}>
+        <ProjectGroupHeaderMenuItems actions={actions} />
       </DropdownMenuContent>
     </DropdownMenu>
   )

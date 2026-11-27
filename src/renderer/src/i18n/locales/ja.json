@@ -6500,8 +6500,7 @@
           "83dfbc5313": "グループ名",
           "4a64e78822": "保存中…",
           "defaultGroupName": "{{name}} グループ",
-          "create": "作成",
-          "rename": "名前を変更"
+          "create": "作成"
         },
         "RemoteFileBrowser": {
           "2300612806": "フィルタリングするために入力するか、パスを入力します…",
@@ -6907,9 +6906,7 @@
         },
         "WorktreeList": {
           "d880ea0744": "グループを作成し、このプロジェクトをそのグループに移動します。",
-          "bc1460beb3": "サイドバーに表示されるグループ名を更新します。",
           "13757c053c": "新規プロジェクトグループ",
-          "f9dc6cc5d3": "プロジェクトグループの名前を変更",
           "370c6a55dd": "フィルターをクリアする",
           "b7acbf038b": "ワークスペースが見つかりません",
           "c83968f87f": "プロジェクトの削除",
@@ -6921,7 +6918,6 @@
           "2ef41bf9a7": "プロジェクトの操作",
           "609633a9e6": "{{value0}} のプロジェクト操作",
           "902115cdbe": "グループの削除",
-          "4d7b73658c": "グループ名の変更",
           "79465e9034": "{{value0}} のグループ操作",
           "bfbedc547b": "ワークツリー",
           "bb85cd86ba": "{{value0}} のワークスペースを作成",
@@ -6935,8 +6931,6 @@
           "failedNestWorkspace": "ワークスペースをネストできませんでした",
           "sidebarRowMissing": "対象はもう存在しません",
           "failedUnnestWorkspace": "ワークスペースの展開に失敗しました",
-          "groupRenameFailed": "グループ名の変更に失敗しました",
-          "groupRenameFailedDesc": "Orca はグループのホストに新規名前を確認できませんでした。再接続後、グループを再確認してください。",
           "hostRepairRequired": "Re-pair required",
           "showChildWorkspaces_other": "{{count}} 件の子ワークスペースを表示",
           "hideChildWorkspaces_other": "{{count}} 件の子ワークスペースを非表示",

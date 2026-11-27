@@ -109,6 +109,7 @@ export const ProjectGroupCreate = lazyZodSchema(() =>
   z.object({
     name: requiredString('Missing group name'),
     parentPath: OptionalString,
+    defaultWorkingDirectory: z.string().nullable().optional(),
     connectionId: OptionalString.nullable().optional(),
     parentGroupId: OptionalString.nullable().optional(),
     createdFrom: z.enum(['manual', 'folder-scan', 'migration']).optional()
@@ -121,6 +122,7 @@ export const ProjectGroupUpdate = lazyZodSchema(() =>
     updates: z.object({
       hookSettings: WorkspaceHookSettingsSchema.optional(),
       name: OptionalString,
+      defaultWorkingDirectory: z.string().nullable().optional(),
       isCollapsed: z.boolean().optional(),
       tabOrder: OptionalFiniteNumber,
       rootProjectOrder: z.number().finite().nullable().optional(),

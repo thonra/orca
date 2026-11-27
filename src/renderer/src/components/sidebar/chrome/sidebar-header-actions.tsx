@@ -7,6 +7,7 @@ import { formatOptionalPrimaryShortcutLabel } from '@/lib/keyboard/useShortcutLa
 import { useTranslate } from '@/i18n/use-translate'
 import { openWorkspaceCreationComposerWithTourHandoff } from '../../contextual-tours/workspace-creation-tour-handoff'
 import type { AddRepoDialogEntryRequest } from '../project-admission/dialog/add-repo-dialog-types'
+import { NewProjectGroupButton } from './NewProjectGroupButton'
 import { AddProjectMenu } from '../project-admission/menu/AddProjectMenu'
 import SidebarWorkspaceOptionsMenu from '../worktree-list/controls/SidebarWorkspaceOptionsMenu'
 
@@ -124,6 +125,7 @@ export function SidebarHeaderActions({
         preserveWorkspaceBoardOpen
         onMenuOpenChange={(open) => updateMenuOpen('addProject', open)}
       />
+      <NewProjectGroupButton />
       <NewWorkspaceButton preserveWorkspaceBoardOpen />
     </div>
   )

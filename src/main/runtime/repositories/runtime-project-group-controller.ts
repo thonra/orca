@@ -10,6 +10,8 @@ import { getSetupConfig } from '../../../shared/workspace-setup/hooks/orca-hook-
 import type { FolderWorkspaceCreateResult } from '../../../shared/folder-workspaces/folder-workspace-create'
 import type { RuntimeGroupFolderCreateInput } from '../workspaces/creation/runtime-group-folder-setup'
 import { refuseWslHostWindowsDrivePath } from '../terminal/launch/wsl-host-windows-drive-guard'
+import { assertProjectGroupWorkingDirectoryUsable } from './project-group-working-directory'
+import { getProjectGroupDefaultWorkingDirectory } from '../../../shared/project/groups/project-groups'
 import type { FolderWorkspace } from '../../../shared/folder-workspaces/folder-workspace-types'
 import type {
   ProjectGroup,
@@ -88,6 +90,7 @@ export class RuntimeProjectGroupController {
   async createGroup(input: {
     name: string
     parentPath?: string | null
+    defaultWorkingDirectory?: string | null
     connectionId?: string | null
     parentGroupId?: string | null
     createdFrom?: ProjectGroup['createdFrom']
@@ -96,9 +99,14 @@ export class RuntimeProjectGroupController {
     if (!store?.createProjectGroup) {
       throw new Error('runtime_unavailable')
     }
+    const folderPath = input.defaultWorkingDirectory?.trim()
+    if (folderPath) {
+      await assertProjectGroupWorkingDirectoryUsable(store, folderPath, input.connectionId)
+    }
     const group = store.createProjectGroup({
       name: input.name,
       parentPath: input.parentPath ?? null,
+      defaultWorkingDirectory: input.defaultWorkingDirectory,
       connectionId: input.connectionId ?? null,
       parentGroupId: input.parentGroupId ?? null,
       createdFrom: input.createdFrom ?? 'manual'
@@ -111,6 +119,14 @@ export class RuntimeProjectGroupController {
     const store = this.deps.getStore()
     if (!store?.updateProjectGroup) {
       throw new Error('runtime_unavailable')
+    }
+    const folderPath = updates.defaultWorkingDirectory?.trim()
+    if (folderPath) {
+      const group = store.getProjectGroups?.().find((entry) => entry.id === groupId)
+      if (!group) {
+        return null
+      }
+      await assertProjectGroupWorkingDirectoryUsable(store, folderPath, group.connectionId, group)
     }
     const updated = store.updateProjectGroup(groupId, updates)
     if (updated) {
@@ -135,6 +151,16 @@ export class RuntimeProjectGroupController {
     const store = this.deps.getStore()
     if (!store?.updateProjectGroups) {
       throw new Error('runtime_unavailable')
+    }
+    for (const { groupId, updates } of mutations) {
+      const folderPath = updates.defaultWorkingDirectory?.trim()
+      if (folderPath) {
+        const group = store.getProjectGroups?.().find((entry) => entry.id === groupId)
+        if (!group) {
+          return null
+        }
+        await assertProjectGroupWorkingDirectoryUsable(store, folderPath, group.connectionId, group)
+      }
     }
     const updated = store.updateProjectGroups(mutations)
     if (updated?.length) {
@@ -177,11 +203,11 @@ export class RuntimeProjectGroupController {
     const folderPath =
       typeof input.folderPath === 'string' && input.folderPath.trim().length > 0
         ? input.folderPath
-        : group?.parentPath
+        : getProjectGroupDefaultWorkingDirectory(group)
     if (!group || !folderPath) {
       throw new FolderWorkspaceCreateRefusedError('folder_workspace_project_group_not_found')
     }
-    if (folderPath === input.folderPath) {
+    if (folderPath === input.folderPath || group.defaultWorkingDirectory !== undefined) {
       // An explicit folder on a WSL host must not be a Windows drive; refused before any store write.
       await refuseWslHostWindowsDrivePath(folderPath)
     }
@@ -197,11 +223,13 @@ export class RuntimeProjectGroupController {
       throw new FolderWorkspaceCreateRefusedError(pathRefusal)
     }
     const { terminalImageViewerSupported: _viewer, ...createInput } = input
-    const workspace = await createFolderWorkspaceWithPluginHooks(createInput, (request) =>
-      createFolder({
-        ...request,
-        creatorProvenance: request.creatorProvenance ?? { kind: 'host' }
-      })
+    const workspace = await createFolderWorkspaceWithPluginHooks(
+      { ...createInput, folderPath },
+      (request) =>
+        createFolder({
+          ...request,
+          creatorProvenance: request.creatorProvenance ?? { kind: 'host' }
+        })
     )
     input.onWorkspaceCreated?.(`folder:${workspace.id}`)
     this.deps.notifyReposChanged()

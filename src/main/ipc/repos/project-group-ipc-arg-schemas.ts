@@ -7,6 +7,7 @@ export const ProjectGroupCreateArgs = lazyZodSchema(() =>
   z.object({
     name: z.string().min(1),
     parentPath: z.string().nullable().optional(),
+    defaultWorkingDirectory: z.string().nullable().optional(),
     connectionId: z.string().nullable().optional(),
     parentGroupId: z.string().nullable().optional(),
     createdFrom: z.enum(['manual', 'folder-scan', 'migration']).optional()
@@ -19,6 +20,7 @@ export const ProjectGroupUpdateArgs = lazyZodSchema(() =>
     updates: z.object({
       hookSettings: WorkspaceHookSettingsSchema.optional(),
       name: z.string().optional(),
+      defaultWorkingDirectory: z.string().nullable().optional(),
       isCollapsed: z.boolean().optional(),
       tabOrder: z.number().finite().optional(),
       rootProjectOrder: z.number().finite().nullable().optional(),

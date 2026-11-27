@@ -4,7 +4,7 @@ import {
 } from '../drag/root-project-header-drop'
 import React from 'react'
 import { ChevronDown } from 'lucide-react'
-import { ProjectHeaderHostLabel, ProjectHeaderHostTooltip } from './ProjectHeaderHostLabel'
+import { ProjectHeaderHostLabel } from './ProjectHeaderHostLabel'
 import type { VirtualItem } from '@tanstack/react-virtual'
 import { cn } from '@/lib/class-names'
 import { RepoIconGlyph } from '@/components/repo/repo-icon'
@@ -12,7 +12,7 @@ import { RepoMark } from '@/components/repo/RepoMark'
 import { RepoForkIndicator } from '@/components/repo/repo-fork-indicator'
 
 import '@/store/project-groups/project-group-owner-routing'
-import { getRepoExecutionHostId } from '../../../../../../shared/execution-host/execution-host'
+import { getProjectGroupDefaultWorkingDirectory } from '../../../../../../shared/project/groups/project-groups'
 import {
   getHeaderDragRepo,
   isSingleHostProjectHeader,
@@ -37,6 +37,7 @@ import {
 import { RepoScanUnavailableIndicator } from './RepoScanUnavailableIndicator'
 import {
   ProjectGroupCreateWorkspaceButton,
+  ProjectGroupHeaderContextMenu,
   ProjectGroupHeaderMenu
 } from './project-group-header-actions'
 import {
@@ -77,17 +78,20 @@ export function renderWorktreeSectionHeaderRow(
       : getHeaderDragRepo(row)
     : undefined
   const projectIdForHeader = headerRepo?.id
-  const projectGroupIdForHeader =
-    isProjectGroupHeader && !row.repo && typeof row.projectGroup?.id === 'string'
-      ? row.projectGroup.id
-      : undefined
+  const projectGroup =
+    isProjectGroupHeader && !row.repo && row.projectGroup && 'createdFrom' in row.projectGroup
+      ? row.projectGroup
+      : null
   const projectGroupDragIdForHeader =
-    row.repeated && !usesRootProjectDrag ? undefined : projectGroupIdForHeader
-  // Why: rename/delete must route to the host that owns this row, not to whichever host has focus.
-  const projectGroupHostIdForHeader =
-    row.projectGroup && 'createdFrom' in row.projectGroup
-      ? getRepoExecutionHostId(row.projectGroup)
-      : undefined
+    row.repeated && !usesRootProjectDrag ? undefined : projectGroup?.id
+  const projectGroupMenuActions = projectGroup
+    ? {
+        group: projectGroup,
+        onEdit: ctx.onEditProjectGroup,
+        onDelete: ctx.onDeleteProjectGroup,
+        onRefresh: ctx.onRefreshProjectGroup
+      }
+    : null
   const repoHeaderIndex = headerRepo && headerDrag.repoHeaderIndexByRepoId.get(headerRepo.id)
   const repoHeaderBucketKey = headerRepo && headerDrag.repoHeaderBucketByRepoId.get(headerRepo.id)
   const projectGroupHeaderIndex =
@@ -148,13 +152,7 @@ export function renderWorktreeSectionHeaderRow(
     badgeColor: row.repo?.badgeColor
   })
   const folderBackedProjectGroup =
-    isProjectGroupHeader &&
-    !row.repo &&
-    row.projectGroup &&
-    'parentPath' in row.projectGroup &&
-    row.projectGroup.parentPath
-      ? row.projectGroup
-      : null
+    projectGroup && getProjectGroupDefaultWorkingDirectory(projectGroup) ? projectGroup : null
   const projectGroupPathStatus = folderBackedProjectGroup
     ? ctx.getCachedFolderWorkspacePathStatus({
         scope: 'project-group',
@@ -194,7 +192,11 @@ export function renderWorktreeSectionHeaderRow(
       )}
       style={isActiveStickyHeader ? undefined : { transform: getVirtualRowTransform(vItem.start) }}
     >
-      <ProjectHeaderHostTooltip label={label} context={hostContext}>
+      <ProjectGroupHeaderContextMenu
+        actions={projectGroupMenuActions}
+        label={label}
+        hostContext={hostContext}
+      >
         <div
           id={getWorktreeOptionId(row.key)}
           role="button"
@@ -360,16 +362,8 @@ export function renderWorktreeSectionHeaderRow(
               </div>
             ) : null}
 
-            {isProjectGroupHeader && !row.repo && projectGroupIdForHeader ? (
-              <ProjectGroupHeaderMenu
-                groupId={projectGroupIdForHeader}
-                hostId={projectGroupHostIdForHeader}
-                label={label}
-                projectGroup={folderBackedProjectGroup}
-                onRefreshProjectGroup={ctx.onRefreshProjectGroup}
-                onRename={ctx.onRenameProjectGroup}
-                onDelete={ctx.onDeleteProjectGroup}
-              />
+            {projectGroupMenuActions ? (
+              <ProjectGroupHeaderMenu actions={projectGroupMenuActions} label={label} />
             ) : null}
 
             {folderBackedProjectGroup ? (
@@ -403,7 +397,7 @@ export function renderWorktreeSectionHeaderRow(
             ) : null}
           </ProjectHeaderActions>
         </div>
-      </ProjectHeaderHostTooltip>
+      </ProjectGroupHeaderContextMenu>
     </div>
   )
 }

@@ -6603,8 +6603,7 @@
           "83dfbc5313": "그룹 이름",
           "4a64e78822": "저장 중...",
           "defaultGroupName": "{{name}} 그룹",
-          "create": "생성",
-          "rename": "이름 변경"
+          "create": "생성"
         },
         "RemoteFileBrowser": {
           "2300612806": "필터링하려면 입력하거나 경로를 입력하세요…",
@@ -7018,9 +7017,7 @@
         },
         "WorktreeList": {
           "d880ea0744": "그룹을 만들고 이 프로젝트를 그룹으로 이동하세요.",
-          "bc1460beb3": "사이드바에 표시된 그룹 이름을 업데이트합니다.",
           "13757c053c": "새로운 프로젝트 그룹",
-          "f9dc6cc5d3": "프로젝트 그룹 이름 바꾸기",
           "370c6a55dd": "필터 지우기",
           "b7acbf038b": "워크스페이스를 찾을 수 없습니다.",
           "c83968f87f": "프로젝트 제거",
@@ -7032,7 +7029,6 @@
           "2ef41bf9a7": "프로젝트 작업",
           "609633a9e6": "{{value0}}에 대한 프로젝트 작업",
           "902115cdbe": "그룹 삭제",
-          "4d7b73658c": "그룹 이름 바꾸기",
           "79465e9034": "{{value0}}에 대한 그룹 작업",
           "bfbedc547b": "워크트리",
           "bb85cd86ba": "{{value0}}에 대한 워크스페이스 만들기",
@@ -7046,8 +7042,6 @@
           "failedNestWorkspace": "워크스페이스를 중첩하지 못했습니다",
           "sidebarRowMissing": "대상이 더 이상 존재하지 않습니다",
           "failedUnnestWorkspace": "워크스페이스 중첩 해제 실패",
-          "groupRenameFailed": "그룹 이름을 바꾸지 못했습니다.",
-          "groupRenameFailedDesc": "Orca는 그룹 호스트에게 새 이름을 확인할 수 없습니다. 다시 연결한 후 그룹을 다시 확인하세요.",
           "hostRepairRequired": "다시 페어링 필요",
           "showChildWorkspaces_one": "하위 워크스페이스 {{count}}개 표시",
           "hideChildWorkspaces_one": "하위 워크스페이스 {{count}}개 숨기기",

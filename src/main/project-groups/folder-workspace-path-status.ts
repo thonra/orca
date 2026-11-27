@@ -9,7 +9,10 @@ import type {
   FolderWorkspacePathStatus,
   FolderWorkspacePathStatusRequest
 } from '../../shared/folder-workspaces/folder-workspace-path-status'
-import { getProjectGroupSubtreeIds } from '../../shared/project/groups/project-groups'
+import {
+  getProjectGroupDefaultWorkingDirectory,
+  getProjectGroupSubtreeIds
+} from '../../shared/project/groups/project-groups'
 import type { FolderWorkspace } from '../../shared/folder-workspaces/folder-workspace-types'
 import type { ProjectGroup } from '../../shared/project/groups/project-group-types'
 import type { Repo } from '../../shared/repository/repo-types'
@@ -166,11 +169,12 @@ export function resolveFolderWorkspaceStatusPath(args: {
     const group = args.store
       .getProjectGroups?.()
       .find((entry) => entry.id === request.projectGroupId)
-    if (!group?.parentPath) {
+    const folderPath = getProjectGroupDefaultWorkingDirectory(group)
+    if (!group || !folderPath) {
       throw new Error('folder_workspace_path_scope_not_found')
     }
     return {
-      folderPath: group.parentPath,
+      folderPath,
       projectGroupId: group.id,
       connectionId: group.connectionId ?? null
     }
