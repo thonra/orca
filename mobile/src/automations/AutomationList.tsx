@@ -60,7 +60,7 @@ export function AutomationList(props: {
         const orphan = item.selector.kind === 'orphan' ? item.selector.issue : null
         const project = props.projectName(automation)
         const subtitle = orphan
-          ? automationOrphanIssueText(orphan)
+          ? automationOrphanIssueText(orphan, t)
           : [automationScheduleText(automation, t, intlLocale), project].filter(Boolean).join(' · ')
         return (
           <ListRow
