@@ -127,9 +127,10 @@ it('a switch never waits for the launch environment, and still lists its HOME ag
     { target: { runtime: 'host' }, accountId: host.b },
     { ...context, runtime }
   )
-  // Switched, reading agy's login only as the switch itself does.
+  // Switched, reading agy's login only as the switch itself does: whether chats must stop first,
+  // then the write's own check and readback.
   await vi.waitFor(() => expect(host.getNative()).toBe(credential('b')))
-  expect(vi.mocked(host.backend.read).mock.calls.length).toBe(2)
+  expect(vi.mocked(host.backend.read).mock.calls.length).toBe(3)
   expect(store.shouldRefresh(shellHome)).toBe(false)
   held.resolve({ HOME: '/Users/shell-home' })
   await selecting

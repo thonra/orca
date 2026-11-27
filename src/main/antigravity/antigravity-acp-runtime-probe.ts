@@ -41,7 +41,8 @@ async function initializeFromDisposableFolder(
   launch: (folder: string) => ProbeLaunch,
   timeoutMs: number,
   signal: AbortSignal | undefined,
-  check: InitializeCheck | undefined
+  check: InitializeCheck | undefined,
+  retain: ((connection: AcpAgentConnection) => void) | undefined
 ): Promise<InitializeOutcome> {
   const folder = await mkdtemp(join(tmpdir(), 'orca-antigravity-probe-'))
   let connection: AcpAgentConnection | undefined
@@ -53,6 +54,7 @@ async function initializeFromDisposableFolder(
           { ...launch(folder), cwd: folder },
           { clientInfo: AGY_ACP_CLIENT_INFO }
         )
+        retain?.(connection)
         return connection
       },
       async (started) => {
@@ -82,14 +84,15 @@ async function initializeFromDisposableFolder(
 }
 
 /** Initializes from a disposable folder, then runs `check` there within the same deadline; rejects
- *  unless agy's exit is proven afterwards. */
+ *  unless agy's exit is proven afterwards. `retain` sees agy's process as it starts. */
 export async function initializeAntigravityAcp(
   launch: (folder: string) => ProbeLaunch,
   timeoutMs: number,
   signal?: AbortSignal,
-  check?: InitializeCheck
+  check?: InitializeCheck,
+  retain?: (connection: AcpAgentConnection) => void
 ): Promise<InitializeResponse> {
-  const outcome = await initializeFromDisposableFolder(launch, timeoutMs, signal, check)
+  const outcome = await initializeFromDisposableFolder(launch, timeoutMs, signal, check, retain)
   if (outcome.failed || !outcome.initialized) {
     throw outcome.failure
   }

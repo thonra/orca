@@ -37,6 +37,8 @@ export async function startAcpStructuredSession(
 ): Promise<AgentSessionAcquisition> {
   const sessionId = input.identity.sessionId
   const generation = deps.mintGeneration?.() ?? randomUUID()
+  // Inside the launch gate, so an account switch that begins later waits for this child.
+  const accountKey = deps.spec.launchAccount?.atLaunch()
   children.endings.admit(sessionId, generation)
   try {
     const { acquisition, session } = await acquireAcpStructuredSession({
@@ -52,7 +54,7 @@ export async function startAcpStructuredSession(
           }
         })
         children.starts.track(attempt, connection)
-        deps.spec.launchGate?.retain(connection)
+        deps.spec.launchGate?.retain(connection, true)
       },
       onExit: (session) => {
         if (session && children.sessions.get(sessionId) === session) {
@@ -69,10 +71,17 @@ export async function startAcpStructuredSession(
       throw new Error('closed while starting')
     }
     children.sessions.set(sessionId, session)
-    return acquisition
+    if (attempt.connection) {
+      deps.spec.launchGate?.settle(attempt.connection, true)
+    }
+    return accountKey === undefined ? acquisition : { ...acquisition, accountKey }
   } catch (error) {
     children.endings.retire(sessionId, generation)
     const { connection } = attempt
+    // No chat runs this process: an account switch may stop it.
+    if (connection) {
+      deps.spec.launchGate?.settle(connection, false)
+    }
     if (connection && error instanceof AcpConnectionClosedError) {
       // Wait briefly for process exit so startup failures include final diagnostics.
       await waitForAcpExit(connection, graceMs(), attempt.signal)

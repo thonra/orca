@@ -42,6 +42,8 @@ export function AntigravityAccountsSection({
   const [state, setState] = useState<AntigravityAccountState | null>(null)
   const [error, setError] = useState<string | null>(null)
   const mounted = useRef(true)
+  // Every read of the rows takes a number; only the latest one's answer is shown.
+  const rowsRead = useRef(0)
   const { busy, run } = useAntigravityAccountRun(perform, mounted)
   const ownerKind = owner.kind
   const environmentId = owner.kind === 'environment' ? owner.environmentId : null
@@ -68,9 +70,10 @@ export function AntigravityAccountsSection({
       ownerKind === 'environment' && environmentId
         ? { kind: 'environment', environmentId }
         : { kind: 'local' }
+    const read = ++rowsRead.current
     void callAntigravityAccounts(currentOwner, { runtime, wslDistro }, 'List').then(
       (next) => {
-        if (!cancelled) {
+        if (!cancelled && read === rowsRead.current) {
           setState(next)
         }
       },
@@ -97,20 +100,22 @@ export function AntigravityAccountsSection({
     if (!keepShown) {
       setError(null)
     }
+    const read = ++rowsRead.current
+    const latest = () => mounted.current && read === rowsRead.current
     try {
       const next = await callAntigravityAccounts(owner, target, action, accountId)
-      if (mounted.current) {
+      if (latest()) {
         setState(next)
       }
     } catch (cause) {
       if (action === 'Select' || action === 'Remove' || action === 'AddCurrent') {
         try {
           const observed = await callAntigravityAccounts(owner, target, 'List')
-          if (mounted.current) {
+          if (latest()) {
             setState(observed)
           }
         } catch {
-          if (mounted.current) {
+          if (latest()) {
             setState(null)
           }
         }
@@ -163,6 +168,12 @@ export function AntigravityAccountsSection({
       ? (signIn.flow.flowId ?? 'another client')
       : 'idle'
   useOnLaterChange(signedInFlow, reread)
+  // A switch waiting for chats is pushed as it goes (and again on reconnect): the rows follow it.
+  const accountSwitch =
+    signIn.known && runtime === 'host'
+      ? `${signIn.accountSwitch?.accountId ?? ''}:${signIn.accountSwitch?.waitingForChats ?? ''}`
+      : null
+  useOnLaterChange(accountSwitch, reread)
   const description = windowsHost
     ? t(
         'accounts.antigravity.descriptionWindows',
@@ -210,7 +221,12 @@ export function AntigravityAccountsSection({
           <AntigravityChatAuthRows owner={owner} onSaved={reread} />
         ) : null}
         <AntigravityAgyAccountRows
-          state={state}
+          // A host switch's pushed progress shows while its select still answers; WSL rows don't wait on it.
+          state={
+            state && runtime === 'host' && signIn.accountSwitch
+              ? { ...state, switching: signIn.accountSwitch }
+              : state
+          }
           error={error}
           busy={busy}
           windowsHost={windowsHost}

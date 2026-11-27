@@ -25586,6 +25586,9 @@
         "accounts": "accounts"
       },
       "windowsChanged": "The host default account changed. Select a saved account to apply it again.",
+      "switching": "Switching…",
+      "switchingAfterChats_one": "Switching after {{count}} chat finishes…",
+      "switchingAfterChats_other": "Switching after {{count}} chats finish…",
       "authMethod": "Sign in with",
       "personal": "Google account",
       "enterprise": "Gemini Enterprise",

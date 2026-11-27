@@ -3,6 +3,7 @@ import { join } from 'node:path'
 import type { AntigravityChatAuthConfig } from '../../shared/agent-accounts/antigravity/antigravity-chat-auth-config'
 import { durableWriteTempPath, writeFileDurableIfCurrent } from '../filesystem/durable-file-write'
 import type {
+  AntigravityAccountSwitchProgress,
   AntigravityChatAuth,
   AntigravityChatSignInState
 } from '../../shared/agent-accounts/antigravity/antigravity-account-types'
@@ -21,12 +22,24 @@ type AntigravityOwnedSignIn = Omit<AntigravityChatSignInState, 'flowId'> & {
   owner: string
 }
 
-/** agy's sign-in as Orca last saw it, and the one in-app sign-in running on this host; its
- *  revision tells every surface to read again. */
+/** agy's sign-in as Orca last saw it, the one in-app sign-in running on this host, and an
+ *  account switch waiting for chats; its revision tells every surface to read again. */
 export const antigravityChatSignIn = new RevisionedState<{
   auth: AntigravityChatAuth
   flow: AntigravityOwnedSignIn | null
-}>({ auth: 'unknown', flow: null })
+  accountSwitch: AntigravityAccountSwitchProgress | null
+}>({ auth: 'unknown', flow: null, accountSwitch: null })
+
+/** Tells every surface following the sign-in how a waiting account switch stands. */
+export function publishAntigravityAccountSwitch(next: AntigravityAccountSwitchProgress | null) {
+  const { value } = antigravityChatSignIn.get()
+  if (
+    value.accountSwitch?.accountId !== next?.accountId ||
+    value.accountSwitch?.waitingForChats !== next?.waitingForChats
+  ) {
+    antigravityChatSignIn.set({ ...value, accountSwitch: next })
+  }
+}
 
 async function gcpProjection(
   auth: AntigravityChatAuthConfig,

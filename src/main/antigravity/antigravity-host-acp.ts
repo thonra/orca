@@ -15,6 +15,7 @@ import {
   isValidAppVersion
 } from '../../shared/app-lifecycle/identity/app-version'
 import { initializeAntigravityAcp } from './antigravity-acp-runtime-probe'
+import { ANTIGRAVITY_LAUNCH_GATE } from './antigravity-chat-account'
 import { antigravityTakesSystemPrompt } from '../acp/launch/acp-instructions'
 
 /** The oldest agy shown to run a chat on a home it is given (`--gemini-dir`) and to ignore an
@@ -184,6 +185,13 @@ async function askAntigravityHostAcp(
   if (!start) {
     return 'unanswered'
   }
+  // agy reads its login here, so an account switch stops this check before writing another.
+  let gate: ReturnType<typeof ANTIGRAVITY_LAUNCH_GATE.enter>
+  try {
+    gate = ANTIGRAVITY_LAUNCH_GATE.enter(undefined)
+  } catch {
+    return 'unanswered'
+  }
   let answered = false
   const check: HostCheck = {
     identity,
@@ -191,7 +199,7 @@ async function askAntigravityHostAcp(
     answer: initializeAntigravityAcp(
       () => ({ command, args: ['acp', AGY_SKIP_PERMISSIONS_FLAG], env, envToDelete }),
       PROBE_TIMEOUT_MS,
-      undefined,
+      gate.signal,
       async (connection, initialized, folder) => {
         answered = true
         if (!isCompatibleAntigravityHostAcp(initialized)) {
@@ -203,7 +211,8 @@ async function askAntigravityHostAcp(
         if (sessions) {
           await connection.listSessions({ cwd: folder })
         }
-      }
+      },
+      (connection) => ANTIGRAVITY_LAUNCH_GATE.retain(connection)
     ).then(
       (initialized): AntigravityHostAcpAnswer => {
         if (sessions) {
@@ -226,10 +235,15 @@ async function askAntigravityHostAcp(
           check.retryAt = undefined
           return 'incompatible'
         }
+        // A check a switch stopped says nothing about agy: the next ask checks again.
+        if (gate.signal.aborted) {
+          check.retryAt = 0
+        }
         return 'unanswered'
       }
     )
   }
+  void check.answer.finally(gate.leave)
   checks.set(key, check)
   if (sessions) {
     latestAsked = check

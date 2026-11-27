@@ -40,6 +40,7 @@ export async function acquireOwner(
   record: AgentSessionRecord
   acquisitionGeneration: string
   accountHome?: AgentSessionAccountHome
+  accountKey?: string
 }> {
   const fence = record.lease.runtimeFence
   const spawnToken = record.lease.reservedSpawnToken
@@ -139,7 +140,8 @@ export async function acquireOwner(
     return {
       record: proved,
       acquisitionGeneration: acquired.acquisitionGeneration,
-      ...(acquired.accountHome ? { accountHome: acquired.accountHome } : {})
+      ...(acquired.accountHome ? { accountHome: acquired.accountHome } : {}),
+      ...(acquired.accountKey !== undefined ? { accountKey: acquired.accountKey } : {})
     }
   } catch (error) {
     if (isAgentSessionPreSpawnError(error)) {

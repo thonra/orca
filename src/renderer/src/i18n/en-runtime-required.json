@@ -1,5 +1,9 @@
 {
   "accounts": {
+    "antigravity": {
+      "switchingAfterChats_one": "Switching after {{count}} chat finishes…",
+      "switchingAfterChats_other": "Switching after {{count}} chats finish…"
+    },
     "claude": {
       "switchSessions": {
         "body_one": "{{count}} Claude session is still running on {{previous}}. Restarting continues the conversation on {{next}}. Busy sessions stop their current work and restart now.",

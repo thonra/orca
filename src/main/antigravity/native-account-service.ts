@@ -99,15 +99,20 @@ export class AntigravityAccountService {
     })
   }
 
-  /** `switched` runs once agy holds another login than before and the switch is saved. */
-  selectAccount(id: string, switched?: () => void): Promise<AntigravityAccountState> {
+  /** `switched` runs as soon as agy's login was rewritten, even if the checks after it fail, so
+   *  what described the old login is dropped; `beforeWrite` may refuse, right before the write. */
+  selectAccount(
+    id: string,
+    switched?: () => void,
+    beforeWrite?: () => void
+  ): Promise<AntigravityAccountState> {
     return this.serialize(async () => {
       const { vault, current } = await this.reconcile(id)
       const selected = vault.accounts.find((account) => account.id === id)
       if (!selected) {
         throw new Error('Antigravity account was not found.')
       }
-      const { readback, switching } = await this.switchNative(selected, current)
+      const { readback } = await this.switchNative(selected, current, { beforeWrite, switched })
       const latest = await this.store.read()
       if (
         !latest.accounts.some((account) => account.id === id && this.matches(account, readback))
@@ -117,9 +122,6 @@ export class AntigravityAccountService {
       latest.selectedAccountId = id
       this.updateSnapshot(latest, readback)
       await this.store.write(latest)
-      if (switching) {
-        switched?.()
-      }
       return this.state({ vault: latest, current: readback })
     })
   }
@@ -173,11 +175,14 @@ export class AntigravityAccountService {
 
   private async switchNative(
     selected: StoredAntigravityAccount,
-    current: AntigravityNativeCredential | null
+    current: AntigravityNativeCredential | null,
+    hooks: { beforeWrite?: () => void; switched?: () => void } = {}
   ) {
     const switching = !current || !this.matches(selected, current)
     if (switching) {
+      hooks.beforeWrite?.()
       await this.backend.write(selected.credentials, current?.contents ?? null)
+      hooks.switched?.()
     }
     const readback = await this.backend.read()
     if (!readback || !this.matches(selected, readback)) {

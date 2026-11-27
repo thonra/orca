@@ -1,4 +1,5 @@
 import type {
+  AntigravityAccountSwitchProgress,
   AntigravityChatAuth,
   AntigravityChatSignInIntent,
   AntigravityChatSignInState,
@@ -31,6 +32,8 @@ export type AntigravityChatSignInView = {
   /** The browser could not open the link this client asked for. */
   openFailed: boolean
   retryIntent: AntigravityChatSignInIntent
+  /** An account switch on the host waiting for chats; null when none runs or the host is older. */
+  accountSwitch: AntigravityAccountSwitchProgress | null
 }
 
 type HostStatus = AntigravityChatSignInStatus & { runtimeId?: string }
@@ -257,6 +260,7 @@ export function readAntigravityChatSignIn(owner: RuntimeClientTarget): Antigravi
     auth: known?.auth ?? 'unknown',
     error: notes.error,
     openFailed: notes.openFailed,
+    accountSwitch: known?.accountSwitch ?? null,
     retryIntent: notes.attempt?.receipt
       ? (notes.attempt.receipt.flow?.intent ?? 'signIn')
       : (notes.attempt?.intent ?? known?.flow?.intent ?? 'signIn')

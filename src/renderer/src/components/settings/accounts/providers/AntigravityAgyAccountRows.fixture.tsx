@@ -75,3 +75,33 @@ export const otherSavedAccountHoldsLogin = defineFixture({
       }
     })
 })
+
+const onPersonal = {
+  accounts: [personal, saved],
+  activeAccountId: personal.id,
+  selectedAccountId: personal.id,
+  currentAccount: {
+    email: personal.email,
+    subject: personal.subject,
+    authMethod: 'consumer',
+    identityKnown: true
+  }
+} satisfies AntigravityAccountState
+
+export const switchingAfterChats = defineFixture({
+  width: 640,
+  render: () => rows({ ...onPersonal, switching: { accountId: saved.id, waitingForChats: 2 } })
+})
+
+export const switchFailed = defineFixture({
+  width: 640,
+  render: () =>
+    rows({
+      ...onPersonal,
+      switchFailed: {
+        accountId: saved.id,
+        message:
+          "Antigravity didn't switch accounts: 1 chat is still running. Stop it or let it finish, then select the account again."
+      }
+    })
+})

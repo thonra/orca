@@ -22,6 +22,7 @@ import { HOST_SYSTEM_DEFAULT_USAGE_IDS } from '../../../shared/agent-accounts/ho
 import type { ClaudeStatusLineRateLimits } from '../../../shared/agent-usage/rate-limits/claude-statusline-rate-limits'
 import { getStructuredAgentSessionHost } from '../../native-chat/agent-session-wire/host/structured-agent-session-registry'
 import { releaseIdleChatsOnOtherAccount } from '../../native-chat/agent-session-wire/host/structured-agent-session-account-switch'
+import { AGY_HOST_LOGIN } from '../../antigravity/agy-login-revision'
 
 export type ProviderAccountServices = {
   rateLimits: RateLimitService
@@ -53,6 +54,10 @@ export function createProviderAccountServices(
   // Chats' agents (a bot's too) keep the account they launched with: idle ones restart on the new one.
   claudeAccounts.onSelectionApplied((committed) => {
     void releaseIdleChatsOnOtherAccount(getStructuredAgentSessionHost(), 'claude', committed)
+  })
+  // agy's saved accounts swap its one login, which a chat's running agy keeps: same as above.
+  AGY_HOST_LOGIN.onChanged((committed) => {
+    void releaseIdleChatsOnOtherAccount(getStructuredAgentSessionHost(), 'antigravity', committed)
   })
   // Background quota polls must not boot stopped distros; user-driven resets may prepare them.
   rateLimits.setCodexHomePathResolver((target) =>

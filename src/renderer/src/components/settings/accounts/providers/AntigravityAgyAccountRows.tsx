@@ -1,6 +1,6 @@
 import { AlertCircle, Trash2, UserPlus } from 'lucide-react'
 import { cn } from '@/lib/class-names'
-import { useTranslate } from '@/i18n/use-translate'
+import { useTranslate, type Translate } from '@/i18n/use-translate'
 import type { AntigravityAccountState } from '../../../../../../shared/agent-accounts/antigravity/antigravity-account-types'
 import { openAppHttpLinkFromAnchor } from '@/lib/browser/navigation/app-http-link-open'
 import { Badge } from '../../../ui/badge'
@@ -30,6 +30,8 @@ export function AntigravityAgyAccountRows({
 }): React.JSX.Element {
   const t = useTranslate()
   const signingIn = signIn?.ownFlow === true
+  // A switch waiting for chats refuses every account change until it ends.
+  const locked = busy || Boolean(state?.switching)
   const signInAlert = signIn?.alert ? <ActionError message={signIn.alert} /> : null
   const changed = Boolean(
     state?.selectedAccountId && state.activeAccountId !== state.selectedAccountId
@@ -142,7 +144,7 @@ export function AntigravityAgyAccountRows({
           )
         }
         actions={
-          <Button size="xs" variant="outline" disabled={busy} onClick={() => run('AddCurrent')}>
+          <Button size="xs" variant="outline" disabled={locked} onClick={() => run('AddCurrent')}>
             {t('accounts.antigravity.saveShort', 'Save')}
           </Button>
         }
@@ -157,20 +159,21 @@ export function AntigravityAgyAccountRows({
         title={account.email ?? t('accounts.antigravity.saved', 'Saved Google account')}
         active={active}
         detail={
-          account.id === launchesUse
+          switchDetail(t, state, account.id) ??
+          (account.id === launchesUse
             ? t('accounts.antigravity.launchesUse', 'New agy launches use this account')
             : launchesUse && active
               ? t('accounts.antigravity.loginNow', "agy's login right now")
-              : undefined
+              : undefined)
         }
-        selectDisabled={busy}
+        selectDisabled={locked}
         onSelect={() => run('Select', account.id)}
         actions={
           active ? null : (
             <Button
               variant="ghost"
               size="xs"
-              disabled={busy}
+              disabled={locked}
               onClick={() => run('Remove', account.id)}
             >
               <Trash2 />
@@ -198,7 +201,7 @@ export function AntigravityAgyAccountRows({
             <Button
               size="xs"
               variant="outline"
-              disabled={busy || signIn.signInDisabled}
+              disabled={locked || signIn.signInDisabled}
               onClick={signIn.addAccount}
             >
               <UserPlus />
@@ -224,6 +227,27 @@ export function AntigravityAgyAccountRows({
     )
   }
   return <>{terminalRows}</>
+}
+
+/** A switch to this account still waiting for chats' agy to exit, or why it didn't happen. */
+function switchDetail(
+  t: Translate,
+  state: AntigravityAccountState | null,
+  accountId: string
+): React.ReactNode {
+  const { switching, switchFailed } = state ?? {}
+  if (switching?.accountId === accountId) {
+    const count = switching.waitingForChats
+    return count > 0
+      ? t('accounts.antigravity.switchingAfterChats', 'Switching after {{count}} chats finish…', {
+          count,
+          defaultValue_one: 'Switching after {{count}} chat finishes…'
+        })
+      : t('accounts.antigravity.switching', 'Switching…')
+  }
+  return switchFailed?.accountId === accountId ? (
+    <ActionError message={switchFailed.message} />
+  ) : null
 }
 
 function ActionError({ message }: { message: string }): React.JSX.Element {

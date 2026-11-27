@@ -46,6 +46,9 @@ export class AcpStructuredChildren {
   /** Children that ended before they were ready answer for that ending, open included. */
   readonly endings = new AgentSessionStartEndings()
   readonly starts = new ProviderAcquisitionStarts<AcpStructuredConnection>()
+  private readonly closing = new AbortController()
+  /** Aborted once `closeAll` begins: no start may follow it. */
+  readonly closed = this.closing.signal
   constructor(private readonly deps: AcpStructuredSessionAdapterDeps) {}
   capturePendingOutput: StructuredAgentSessionAdapter['capturePendingOutput'] = (input) => {
     const session = this.sessions.get(input.sessionId)
@@ -126,6 +129,7 @@ export class AcpStructuredChildren {
   }
 
   async closeAll(tasks: (Promise<boolean | void> | undefined)[]): Promise<void> {
+    this.closing.abort()
     const ids = new Set([...this.sessions.keys(), ...this.starts.failedSessionIds()])
     // The host aborts in-progress starts before this teardown.
     const results = await Promise.allSettled([

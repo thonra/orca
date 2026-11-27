@@ -72,8 +72,10 @@ export class AcpStructuredSessionAdapter implements SessionAdapter {
 
   async acquire(input: StructuredAgentSessionAcquireInput): Promise<AgentSessionAcquisition> {
     const sessionId = input.identity.sessionId
-    const gate = this.deps.spec.launchGate?.enter(input.signal)
-    const attempt = this.children.starts.begin(gate?.signal ?? input.signal)
+    // Shutdown refuses every start, one waiting for the launch gate included.
+    const signal = AbortSignal.any([this.children.closed, ...(input.signal ? [input.signal] : [])])
+    const gate = await this.deps.spec.launchGate?.admit(signal)
+    const attempt = this.children.starts.begin(gate?.signal ?? signal)
     try {
       if (!(await this.children.stop(sessionId))) {
         throw new AgentSessionAcquisitionExitUnprovenError(
@@ -214,6 +216,8 @@ export class AcpStructuredSessionAdapter implements SessionAdapter {
   awaitStoppedRequestEnd = stop.requestEndWait((id) => this.children.sessions.get(id), this.graceMs)
 
   settlePermissionTransition = stop.acpPermissionTransition((id) => this.live(id), this.graceMs)
+
+  launchAccountKey = (): string | null => this.deps.spec.launchAccount?.current() ?? null
 
   permissionModeRequiresAcquisition: NonNullable<
     SessionAdapter['permissionModeRequiresAcquisition']

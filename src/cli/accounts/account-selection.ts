@@ -21,6 +21,7 @@ import {
   formatDataAccounts
 } from './account-list-format'
 import { assertDataAccountsSupported, listDataAccounts } from './data-account-commands'
+import { selectAntigravityAccount } from './antigravity-account-select'
 
 const ACCOUNT_AGENTS = ['claude', 'codex', 'opencode', 'devin', 'antigravity'] as const
 type AccountAgent = (typeof ACCOUNT_AGENTS)[number]
@@ -184,7 +185,7 @@ function antigravityAccounts(ctx: HandlerContext): ProviderAccounts {
       if (accountId === null) {
         throw new RuntimeClientError('invalid_argument', 'Antigravity has no system default.')
       }
-      await print('accounts.antigravitySelect', accountId)
+      await selectAntigravityAccount(ctx, target, accountId)
     },
     remove: (accountId) => print('accounts.antigravityRemove', accountId)
   }

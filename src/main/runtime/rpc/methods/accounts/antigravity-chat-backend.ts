@@ -2,13 +2,7 @@ import type {
   AntigravityAccountState,
   AntigravityAccountTarget
 } from '../../../../../shared/agent-accounts/antigravity/antigravity-account-types'
-import {
-  forgetAntigravityHostAcpChecks,
-  isAntigravityHostAccountHome,
-  readyAntigravityHostAcpVersion
-} from '../../../../antigravity/antigravity-host-acp'
-import { isAntigravityAgyOrcaAccountHome } from '../../../../antigravity/antigravity-agy-orca-home'
-import { getStructuredAgentSessionHost } from '../../../../native-chat/agent-session-wire/host/structured-agent-session-registry'
+import { readyAntigravityHostAcpVersion } from '../../../../antigravity/antigravity-host-acp'
 import { resolveHostStructuredAgentLaunchEnvironment } from '../../../agent-session/launch/structured-agent-launch-support'
 import { acpHostBackendInput } from '../../../../acp/launch/acp-launch-command'
 import { ANTIGRAVITY_LAUNCH_SPEC } from '../../../../antigravity/antigravity-acp-launch-spec'
@@ -101,29 +95,5 @@ export async function withAntigravityChatBackend(
     chatAgySignedOut: agy === 'signedOut',
     ...(route.orcaHome ? { chatKeyOnAgy: true } : {}),
     ...(version ? { chatAgyVersion: version } : {})
-  }
-}
-
-/** A running `agy acp` may keep the login it started with, so idle chats on agy stop and resume on
- *  the newly selected account at their next send; busy ones keep their turn (#43375). */
-export function restartIdleAgyChats(target: AntigravityAccountTarget): void {
-  if (target.runtime !== 'host') {
-    return
-  }
-  // The cached answer vouched for the previous login.
-  forgetAntigravityHostAcpChecks()
-  const host = getStructuredAgentSessionHost()
-  if (!host) {
-    return
-  }
-  for (const id of host.loadedSessionIds()) {
-    const home =
-      host.sessionAgent(id) === 'antigravity' ? host.childAccountHome(id, true) : undefined
-    // Orca's homes use agy's Google login too (Enterprise, the retired server's chats).
-    if (home && (isAntigravityHostAccountHome(home) || isAntigravityAgyOrcaAccountHome(home))) {
-      void host.releaseIdleSession(id, true).catch((error: unknown) => {
-        console.warn('[antigravity] an idle chat kept the previous account:', error)
-      })
-    }
   }
 }
