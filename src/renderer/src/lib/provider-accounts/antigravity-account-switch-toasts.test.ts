@@ -1,14 +1,21 @@
 import { expect, it, vi } from 'vitest'
-import type { AntigravityAccountState } from '../../../../shared/agent-accounts/antigravity/antigravity-account-types'
+import type {
+  AntigravityAccountState,
+  AntigravityAccountSwitchProgress
+} from '../../../../shared/agent-accounts/antigravity/antigravity-account-types'
 
 // The host's pushed sign-in status, as the status store hands it to its readers.
-const host = vi.hoisted(() => ({
-  accountSwitch: null as { accountId: string; waitingForChats: number } | null,
-  listeners: new Set<() => void>(),
-  rows: [] as AntigravityAccountState[],
-  success: vi.fn(),
-  error: vi.fn()
-}))
+const host = vi.hoisted(() => {
+  const pushed: {
+    accountSwitch: AntigravityAccountSwitchProgress | null
+    rows: AntigravityAccountState[]
+  } = { accountSwitch: null, rows: [] }
+  return Object.assign(pushed, {
+    listeners: new Set<() => void>(),
+    success: vi.fn(),
+    error: vi.fn()
+  })
+})
 vi.mock('sonner', () => ({ toast: { success: host.success, error: host.error } }))
 vi.mock('@/runtime/provider-accounts/sign-in/antigravity-chat-sign-in-status', () => ({
   observeAntigravityChatSignIn: () => () => {},
