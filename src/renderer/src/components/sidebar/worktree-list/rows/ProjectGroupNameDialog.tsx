@@ -177,6 +177,8 @@ export function ProjectGroupNameDialog({
       <DialogContent
         ref={handleDialogContentRef}
         busy={submitting}
+        animate={false}
+        blurBackground={false}
         className="max-w-sm sm:max-w-sm"
         {...(description ? {} : { 'aria-describedby': undefined })}
         onOpenAutoFocus={(event) => {
@@ -202,7 +204,6 @@ export function ProjectGroupNameDialog({
               ref={inputRef}
               value={name}
               onChange={(event) => setName(event.target.value)}
-              density="compact"
               className="h-8"
               aria-required="true"
               disabled={submitting}

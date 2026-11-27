@@ -16,12 +16,19 @@ export function installBodyOverlayAttributes(): () => void {
   const observer = new MutationObserver(() => sync())
   const sync = (): void => {
     for (const overlay of body.querySelectorAll(MOUNTED_MODAL_OVERLAY_CHILD_SELECTOR)) {
-      observer.observe(overlay, { attributes: true, attributeFilter: ['data-state'] })
+      observer.observe(overlay, {
+        attributes: true,
+        attributeFilter: ['data-state', 'data-no-background-blur']
+      })
     }
     // toggleAttribute is a no-op when the state is unchanged, so unrelated portals cost no restyle.
     body.toggleAttribute(
       'data-modal-overlay-open',
       body.querySelector(MODAL_OVERLAY_CHILD_SELECTOR) !== null
+    )
+    body.toggleAttribute(
+      'data-modal-background-blur',
+      body.querySelector(`${MODAL_OVERLAY_CHILD_SELECTOR}:not([data-no-background-blur])`) !== null
     )
     body.toggleAttribute(
       'data-onboarding-overlay-open',

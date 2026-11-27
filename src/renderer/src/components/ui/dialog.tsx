@@ -46,16 +46,20 @@ function DialogClose({ ...props }: React.ComponentProps<typeof DialogPrimitive.C
 function DialogOverlay({
   className,
   scrim = 'default',
+  animate = true,
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Overlay> & {
   /** `dark` hides the app behind full-window media. */
   scrim?: 'default' | 'dark'
+  animate?: boolean
 }) {
   return (
     <DialogPrimitive.Overlay
       data-slot="dialog-overlay"
       className={cn(
-        'fixed inset-0 z-50 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0',
+        'fixed inset-0 z-50',
+        animate &&
+          'data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0',
         scrim === 'dark' ? 'bg-black/80' : 'bg-black/55',
         className
       )}
@@ -134,6 +138,8 @@ function DialogContent({
   className,
   children,
   overlayClassName,
+  animate = true,
+  blurBackground = true,
   showCloseButton,
   closeButtonVariant = 'close',
   surface,
@@ -147,6 +153,10 @@ function DialogContent({
 }: React.ComponentProps<typeof DialogPrimitive.Content> &
   VariantProps<typeof dialogContentVariants> & {
     overlayClassName?: string
+    /** When false, both the dialog and its scrim appear and disappear immediately. */
+    animate?: boolean
+    /** Keep the scrim and focus trap without blurring the app behind the dialog. */
+    blurBackground?: boolean
     /** Defaults on, except for the unified sizes, whose footer Cancel closes instead. */
     showCloseButton?: boolean
     closeButtonVariant?: 'close' | 'minimize'
@@ -170,6 +180,8 @@ function DialogContent({
     <DialogPortal data-slot="dialog-portal">
       <DialogOverlay
         className={overlayClassName}
+        animate={animate}
+        data-no-background-blur={blurBackground ? undefined : ''}
         scrim={surface === 'media' || surface === 'media-gallery' ? 'dark' : 'default'}
       />
       <DialogPrimitive.Content
@@ -177,7 +189,9 @@ function DialogContent({
         data-size={size}
         // Match dropdown surface/border/shadow tokens for dark-mode contrast; minmax(0,1fr) prevents long tokens from widening the grid and pushing footers outside.
         className={cn(
-          'fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] grid-cols-[minmax(0,1fr)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border border-black/14 bg-dialog-surface p-6 text-foreground shadow-[0_20px_60px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.08)] duration-200 outline-none dark:border-white/14 dark:shadow-[0_24px_72px_rgba(0,0,0,0.55),inset_0_1px_0_rgba(255,255,255,0.06)] data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 sm:max-w-lg data-[size=compact]:sm:max-w-sm data-[size=flush]:gap-0 data-[size=flush]:p-0',
+          'fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] grid-cols-[minmax(0,1fr)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border border-black/14 bg-dialog-surface p-6 text-foreground shadow-[0_20px_60px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.08)] outline-none dark:border-white/14 dark:shadow-[0_24px_72px_rgba(0,0,0,0.55),inset_0_1px_0_rgba(255,255,255,0.06)] sm:max-w-lg data-[size=compact]:sm:max-w-sm data-[size=flush]:gap-0 data-[size=flush]:p-0',
+          animate &&
+            'duration-200 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95',
           unified &&
             cn(
               'gap-3 rounded-[10px] p-5 [&_[data-slot=checkbox][data-state=unchecked]]:border-muted-foreground',

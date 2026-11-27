@@ -1447,7 +1447,7 @@ body[data-modal-overlay-open]
 
 /* Blur source regions independently so status-bar animation cannot re-filter the workspace. */
 :root:not([data-reduce-effects])
-  body:is([data-modal-overlay-open], [data-onboarding-overlay-open])
+  body:is([data-modal-background-blur], [data-onboarding-overlay-open])
   .app-layout {
   --app-layout-modal-blur: blur(2px);
 }
@@ -1466,7 +1466,10 @@ body[data-modal-overlay-open]
     [data-slot='sheet-content'],
     [data-onboarding-overlay]
   ):has(
-    ~ :is([data-slot='dialog-overlay'], [data-slot='sheet-overlay']):not([data-state='closed'])
+    ~ :is([data-slot='dialog-overlay'], [data-slot='sheet-overlay']):not(
+      [data-state='closed'],
+      [data-no-background-blur]
+    )
   ) {
   filter: blur(2px);
 }
