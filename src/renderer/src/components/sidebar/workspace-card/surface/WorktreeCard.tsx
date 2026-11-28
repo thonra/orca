@@ -45,6 +45,7 @@ const WorktreeCard = React.memo(function WorktreeCard({
   onLineageToggle,
   isLineageDropTarget = false,
   affiliateListMode = false,
+  showBrowserBranches = false,
   statusPrDisplay = null
 }: WorktreeCardProps): React.JSX.Element {
   const card = useWorktreeCardController({
@@ -89,7 +90,7 @@ const WorktreeCard = React.memo(function WorktreeCard({
     statusPrDisplay
   })
 
-  return <WorktreeCardSurface card={card} />
+  return <WorktreeCardSurface card={card} showBrowserBranches={showBrowserBranches} />
 })
 
 export default WorktreeCard

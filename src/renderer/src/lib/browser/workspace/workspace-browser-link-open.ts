@@ -146,7 +146,20 @@ export function prepareRuntimeBrowserLink(
   return { status: 'create', groupId: selection.groupId, split: selection.split }
 }
 
-export function materializedBrowserLinkOutcome(
+export function browserTabMaterializedCallback(
+  request: OpenWorkspaceBrowserTabRequest,
+  destination: BrowserLinkDestination | null
+): ((pageId: string) => void) | undefined {
+  if (!destination) {
+    return request.onMaterialized
+  }
+  return (pageId) => {
+    request.onMaterialized?.(pageId)
+    request.onLinkOutcome?.(materializedBrowserLinkOutcome(request, destination, pageId))
+  }
+}
+
+function materializedBrowserLinkOutcome(
   request: OpenWorkspaceBrowserTabRequest,
   destination: BrowserLinkDestination,
   remotePageId: string

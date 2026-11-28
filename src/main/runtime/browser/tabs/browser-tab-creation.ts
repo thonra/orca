@@ -11,6 +11,11 @@ import {
 import { browserSessionRegistry } from '../../../browser/sessions/profiles/browser-session-registry'
 import { BrowserError } from '../../../browser/browser-error'
 import { waitForTabRegistration } from '../../../ipc/browser/browser-tab-registration-wait'
+import { getStructuredAgentSessionHost } from '../../../native-chat/agent-session-wire/host/structured-agent-session-registry'
+import { defaultAgentChatLabel } from '../../../../shared/agent-session/conversation-naming/agent-session-chat-label'
+import type { BrowserTabCreateRequest as BrowserTabRendererRequest } from '../../../../shared/browser/workspaces/browser-tab-create-request'
+import { agentSessionRecordShownName } from '../../agent-session/records/agent-session-record-shown-name'
+import { getActiveRpcAgentSessionId } from '../../rpc/callers/active-call'
 import type { RuntimeBrowserCommandHost } from '../commands/browser-command-contracts'
 import type { RuntimeBrowserCommandTargets } from '../commands/browser-command-targets'
 import {
@@ -39,6 +44,19 @@ type BrowserTabCreateCaller = {
   clientKind?: 'mobile' | 'runtime'
   opensPageLink?: boolean
   signal?: AbortSignal
+}
+
+function readBrowserTabAgentSession(): BrowserTabRendererRequest['agentSession'] {
+  const id = getActiveRpcAgentSessionId()
+  const store = id ? getStructuredAgentSessionHost()?.deps.store : undefined
+  const session = id && store?.getConversation(id)
+  if (!store || !session) {
+    return undefined
+  }
+  return {
+    id: session.sessionId,
+    title: agentSessionRecordShownName(store, session) ?? defaultAgentChatLabel(session.provider)
+  }
 }
 
 export class RuntimeBrowserTabCreation {
@@ -142,7 +160,8 @@ export class RuntimeBrowserTabCreation {
       focus.focusesHost,
       params.page,
       undefined,
-      params.split ? { direction: params.split, fromTabId: params.splitFromTabId } : undefined
+      params.split ? { direction: params.split, fromTabId: params.splitFromTabId } : undefined,
+      !params.page && !caller?.opensPageLink ? readBrowserTabAgentSession() : undefined
     )
 
     // Wait for operability, but retain the created id if mounting times out.

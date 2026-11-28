@@ -334,6 +334,24 @@
     }
   },
   "browser": {
+    "tabTree": {
+      "title": "Browser Tabs",
+      "empty": "No browser tabs in this workspace tree",
+      "newTab": "New tab",
+      "newGroup": "New group",
+      "createGroup": "Create group",
+      "editGroup": "Edit {{title}}",
+      "saveGroup": "Save",
+      "groupName": "Group name",
+      "groupUpdateFailed": "Could not update the tab group",
+      "removeGroup": "Remove group",
+      "expandBranch": "Expand {{title}}",
+      "collapseBranch": "Collapse {{title}}",
+      "unavailable": "Browser tab is no longer available",
+      "pinnedBranches": "Pinned browser tabs",
+      "unpinBranch": "Unpin browser branch",
+      "openPinnedFailed": "Could not open the browser tab"
+    },
     "googleCookieClear": {
       "signInKeyword": "sign-in",
       "unavailable": "Unavailable for this profile on the selected host.",

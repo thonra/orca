@@ -4,6 +4,7 @@ import { redactKagiSessionToken } from '../../../../../shared/browser/navigation
 import { resolveBrowserSourceUnifiedTab } from '../workspace/browser-workspace-source-resolution'
 import type { BrowserLinkPlacement } from '../navigation/visible-browser-link-target'
 import { requestBrowserFocus } from '@/components/browser-pane/host-guest/input/browser-focus'
+import { rememberBrowserTabOpener } from '../tab-tree/browser-tab-tree-preferences'
 
 export function openUrlInTabBesideBrowserPage(args: {
   sourcePageId: string
@@ -40,6 +41,9 @@ export function openUrlInTabBesideBrowserPage(args: {
         }
       : {})
   })
+  if (created.activePageId) {
+    rememberBrowserTabOpener(created.activePageId, sourcePageId)
+  }
   // Why: keyboard focus follows a foreground tab, so Cmd/Ctrl+W closes it instead of its opener.
   if (activate && created.activePageId) {
     requestBrowserFocus({ pageId: created.activePageId, target: 'webview' })

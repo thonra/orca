@@ -68,6 +68,7 @@ export type WorktreeCardProps = {
   onCardDragEnd?: (event: React.DragEvent<HTMLDivElement>) => void
   nativeDragEnabled?: boolean
   affiliateListMode?: boolean
+  showBrowserBranches?: boolean
   statusPrDisplay?: WorktreeCardPrDisplay | null
 }
 

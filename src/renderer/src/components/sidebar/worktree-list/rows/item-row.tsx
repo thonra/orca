@@ -107,6 +107,7 @@ export function renderWorktreeItemRow(
     >
       <WorktreeCard
         worktree={itemRow.worktree}
+        showBrowserBranches
         repo={itemRow.repo}
         isActive={isActiveWorktree}
         isCurrentWorktree={ctx.currentWorktreeId === itemRow.worktree.id}
