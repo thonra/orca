@@ -1,6 +1,7 @@
 import type React from 'react'
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import { FolderTree } from 'lucide-react'
+import { lazyWithRetry } from '@/app-shell/startup/lazy-with-retry'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { useTranslate } from '@/i18n/use-translate'
@@ -14,7 +15,14 @@ import {
   toRuntimeExecutionHostId,
   type ExecutionHostId
 } from '../../../../../shared/execution-host/execution-host'
-import { ProjectGroupNameDialog } from '../worktree-list/rows/ProjectGroupNameDialog'
+
+const LazyProjectGroupNameDialog = lazyWithRetry(
+  () =>
+    import('../worktree-list/rows/ProjectGroupNameDialog').then((module) => ({
+      default: module.ProjectGroupNameDialog
+    })),
+  { reloadKey: 'new-project-group-name-dialog' }
+)
 
 export function NewProjectGroupButton(): React.JSX.Element {
   const t = useTranslate()
@@ -99,23 +107,25 @@ export function NewProjectGroupButton(): React.JSX.Element {
         </TooltipContent>
       </Tooltip>
       {hostId ? (
-        <ProjectGroupNameDialog
-          open
-          title={t('auto.components.sidebar.ProjectGroupNameDialog.newGroupTitle', 'New Group')}
-          description={t(
-            'auto.components.sidebar.ProjectGroupNameDialog.newGroupDescription',
-            'You can add projects after creating the group.'
-          )}
-          initialName=""
-          workingDirectory={{ initialPath: '', hostId }}
-          confirmLabel={t('auto.components.sidebar.ProjectGroupNameDialog.create', 'Create')}
-          onOpenChange={(open) => {
-            if (!open) {
-              setHostId(null)
-            }
-          }}
-          onSubmit={createGroup}
-        />
+        <Suspense fallback={null}>
+          <LazyProjectGroupNameDialog
+            open
+            title={t('auto.components.sidebar.ProjectGroupNameDialog.newGroupTitle', 'New Group')}
+            description={t(
+              'auto.components.sidebar.ProjectGroupNameDialog.newGroupDescription',
+              'You can add projects after creating the group.'
+            )}
+            initialName=""
+            workingDirectory={{ initialPath: '', hostId }}
+            confirmLabel={t('auto.components.sidebar.ProjectGroupNameDialog.create', 'Create')}
+            onOpenChange={(open) => {
+              if (!open) {
+                setHostId(null)
+              }
+            }}
+            onSubmit={createGroup}
+          />
+        </Suspense>
       ) : null}
     </>
   )

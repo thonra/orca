@@ -39,8 +39,14 @@ function headline(
   if (phase === 'offer') {
     return stoppedHeadline(view, t, machine)
   }
-  if (leftForPerson(view) && counts.resumed === 0) {
-    return needYouLine(view, t)
+  if (leftForPerson(view)) {
+    // Beside "M need you", a bare count keeps both outcomes whole at the narrowest width.
+    return counts.resumed === 0
+      ? needYouLine(view, t)
+      : t('auto.components.NativeChatResumeToast.resumedCount', 'Resumed {{count}}', {
+          count: counts.resumed,
+          defaultValue_one: 'Resumed {{count}}'
+        })
   }
   return progressLine(view, t, onlyName)
 }
@@ -180,7 +186,7 @@ export function NativeChatResumeToast({
   const showDismissAll = onDismissAll !== undefined && offering
   const detailsButton = showDetails && (
     <Button
-      variant={offering ? 'ghost' : 'ghost-muted'}
+      variant={offering ? 'ghost' : 'ghost-muted-disclosure'}
       size={offering ? 'xs' : 'xs-compact'}
       className={offering && !showResume ? '-ml-2' : undefined}
       aria-expanded={expanded}
