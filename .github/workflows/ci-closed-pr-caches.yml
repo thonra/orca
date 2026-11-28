@@ -17,8 +17,6 @@ jobs:
         if: github.event.action == 'synchronize' || github.event.pull_request.merged == false
         uses: actions/github-script@v8
         with:
-          retries: 3
-          retry-exempt-status-codes: 400,401,403,404,409,422
           script: |
             const pr = context.payload.pull_request
             const superseded = context.payload.action === 'synchronize'
@@ -44,10 +42,26 @@ jobs:
               ['pi-owner-runtime', 'pi-owner-runtime.yml'],
               ['ci-cache-warmup', 'ci-cache-warmup.yml']
             ]
-            const stillCurrent = async () => {
-              const { data: current } = await github.rest.pulls.get({
+            const readWithRetry = async (request) => {
+              for (const delay of [1000, 4000, 9000]) {
+                try {
+                  return await request()
+                } catch (error) {
+                  if (![502, 503, 504].includes(error.status)) throw error
+                  core.info(`Retrying GitHub API read after HTTP ${error.status} in ${delay} ms`)
+                  await new Promise((resolve) => setTimeout(resolve, delay))
+                }
+              }
+              return request()
+            }
+            const getCurrentPullRequest = async () => {
+              const { data } = await readWithRetry(() => github.rest.pulls.get({
                 ...context.repo, pull_number: pr.number
-              })
+              }))
+              return data
+            }
+            const stillCurrent = async () => {
+              const current = await getCurrentPullRequest()
               if (superseded) {
                 return current.state === 'open' && current.head.sha === pr.head.sha
               }
@@ -60,9 +74,7 @@ jobs:
             }
             if (!superseded && !Number.isFinite(Date.parse(pr.closed_at))) {
               // A close quickly followed by a reopen can deliver a payload rendered after the reopen.
-              const { data: current } = await github.rest.pulls.get({
-                ...context.repo, pull_number: pr.number
-              })
+              const current = await getCurrentPullRequest()
               if (current.state !== 'closed' || current.merged_at !== null) {
                 core.info(`PR #${pr.number} changed after this close event; skipping cancellation`)
                 return
@@ -78,12 +90,12 @@ jobs:
                 ? `${prefix}/${pr.number}${suffix}` : `${prefix}-${pr.number}${suffix}`
               let data
               try {
-                const response = await github.request(
+                const response = await readWithRetry(() => github.request(
                   'GET /repos/{owner}/{repo}/actions/concurrency_groups/{concurrency_group_name}', {
                     ...context.repo, concurrency_group_name: group,
                     headers: { 'X-GitHub-Api-Version': '2026-03-10' }
                   }
-                )
+                ))
                 data = response.data
               } catch (error) {
                 if (error.status === 404) continue
@@ -95,9 +107,9 @@ jobs:
               for (const member of data.group_members) {
                 // Only whole PR runs; release/manual jobs never share this identity.
                 if (member.job_id !== undefined || !Number.isSafeInteger(member.run_id)) continue
-                const { data: run } = await github.rest.actions.getWorkflowRun({
+                const { data: run } = await readWithRetry(() => github.rest.actions.getWorkflowRun({
                   ...context.repo, run_id: member.run_id
-                })
+                }))
                 if (run.event !== 'pull_request' || run.path !== `.github/workflows/${workflow}` ||
                     run.status === 'completed' ||
                     (superseded ? !/^[a-f0-9]{40}$/.test(run.head_sha ?? '') ||
