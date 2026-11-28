@@ -357,7 +357,7 @@ The Bug report, Feature request, Maintenance task, and Question forms add `bug`,
 
 [Fork Issue Triage](.github/workflows/fork-issue-triage.yml) adds `needs-triage` to new issues and assigns unassigned issues to `thonra` for review. Once the issue is understood, set its category, agree on its owner if someone will take it on, and remove `needs-triage`. To apply intake to an existing open issue, run the workflow from `main` with its issue number.
 
-The Orca Fork GitHub Project uses `Todo` for incoming issues. Move an issue to `In Progress` when work starts. Closing the issue moves it to `Done`, and reopening it returns it to `Todo`.
+Configure the Orca Fork GitHub Project to automatically add open issues from `thonra/orca`. Set new and reopened items to `Todo` and closed items to `Done`. Move an issue to `In Progress` when work starts.
 
 ### Upstream syncs
 
