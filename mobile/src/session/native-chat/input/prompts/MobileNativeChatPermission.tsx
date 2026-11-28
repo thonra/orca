@@ -1,5 +1,5 @@
 import { memo, useState, type ReactNode } from 'react'
-import { Pressable, ScrollView, Text, View } from 'react-native'
+import { Pressable, ScrollView, Text, View, type LayoutChangeEvent } from 'react-native'
 import { ChevronDown, ShieldQuestion } from 'lucide-react-native'
 import { approvalDetailPreview } from '../../../../../../src/shared/agent-session/requests/prompts/agent-session-approval-detail-preview'
 import { approvalBlockedPathToShow } from '../../../../../../src/shared/agent-session/requests/prompts/agent-session-approval-blocked-path'
@@ -8,10 +8,15 @@ import { MobileNativeChatCardHeaderAction } from './MobileNativeChatCardHeaderAc
 import { MobilePendingButton } from '../../../../components/controls/MobilePendingButton'
 import { useMobilePendingControl } from '../../../../components/controls/use-mobile-pending-control'
 import { MobileNativeChatMarkdown } from '../../transcript/message-content/MobileNativeChatMarkdown'
-import { styles as markdownStyles } from '../../../../components/markdown/mobile-markdown-styles'
-import { colors, pressedStyle, spacing, typography } from '../../../../theme/mobile-theme'
-import { themedStyleSheet } from '../../../../theme/themed-styles'
-import { useMobileColorScheme } from '../../../../theme/use-mobile-color-scheme'
+import { stylesSheet as markdownStylesSheet } from '../../../../components/markdown/mobile-markdown-styles'
+import {
+  pressedStyle,
+  spacing,
+  typography,
+  type MobileColorScheme
+} from '../../../../theme/mobile-theme'
+import { themedStyleSheet, useThemedStyles } from '../../../../theme/themed-styles'
+import { useMobileColors } from '../../../../theme/use-mobile-color-scheme'
 import { useMobileTranslation } from '../../../../i18n/use-mobile-translation'
 import {
   isNewerApprovalSubject,
@@ -27,10 +32,7 @@ import {
   openUrlRequestPage
 } from './MobileNativeChatUrlRequest'
 import { structuredApprovalOptionId } from './mobile-structured-agent-prompts'
-import {
-  ASK_CHOICE_RADIUS,
-  mobileNativeChatAskStyles as askStyles
-} from './MobileNativeChatAsk.styles'
+import { ASK_CHOICE_RADIUS, mobileNativeChatAskStylesSheet } from './MobileNativeChatAsk.styles'
 
 // Option sends are keyed by their payload; the header's cancel by a key no payload can take.
 const CANCEL = '\0cancel'
@@ -61,11 +63,14 @@ function MobileNativeChatPermissionImpl({
   /** Why the last answer didn't go. */
   notice?: string | null
 }): React.JSX.Element {
-  useMobileColorScheme()
+  const askStyles = useThemedStyles(mobileNativeChatAskStylesSheet)
+  const colors = useMobileColors()
+  const styles = useThemedStyles(stylesSheet)
   const t = useMobileTranslation()
   // An accepted answer keeps the card locked until the host retires it (the card remounts).
   const { pending, run } = useMobilePendingControl<string>({ holdAccepted: true })
   const submitting = pending !== null
+  const answersFloor = useAnswersHalfCardFloor()
   // Unknown newer-host subjects allow only cancellation; preserve their detail for the reader.
   const newerSubject = isNewerApprovalSubject(permission.subject)
   // A page to open: its option opens it, and the back-out stays quiet.
@@ -80,7 +85,11 @@ function MobileNativeChatPermissionImpl({
           ? t('chat.urlRequest.decline', 'Decline')
           : option.label
   return (
-    <View testID="native-chat-approval-card" style={askStyles.card}>
+    <View
+      testID="native-chat-approval-card"
+      style={askStyles.card}
+      onLayout={answersFloor.onCardLayout}
+    >
       <ScrollView style={askStyles.scroll} nestedScrollEnabled>
         <View style={askStyles.questionRow}>
           <ShieldQuestion
@@ -109,8 +118,9 @@ function MobileNativeChatPermissionImpl({
       {/* Its own scroll, so a request with many choices still reaches the last. */}
       <ScrollView
         testID="native-chat-approval-actions"
-        style={styles.answersScroll}
+        style={[styles.answersScroll, answersFloor.answersStyle]}
         contentContainerStyle={styles.answers}
+        onContentSizeChange={answersFloor.onAnswersSize}
         nestedScrollEnabled
       >
         {notice ? (
@@ -168,6 +178,18 @@ function MobileNativeChatPermissionImpl({
 
 export const MobileNativeChatPermission = memo(MobileNativeChatPermissionImpl)
 
+/** Flex shrinks both scrolls in proportion, so a long plan would squeeze the answers; they keep
+ *  half the card, or all of themselves if shorter. */
+function useAnswersHalfCardFloor() {
+  const [cardHeight, setCardHeight] = useState(0)
+  const [answersHeight, setAnswersHeight] = useState(0)
+  return {
+    answersStyle: { minHeight: Math.min(answersHeight, cardHeight / 2) },
+    onCardLayout: (event: LayoutChangeEvent) => setCardHeight(event.nativeEvent.layout.height),
+    onAnswersSize: (_width: number, height: number) => setAnswersHeight(height)
+  }
+}
+
 function MobileNativeChatPermissionContext({
   permission,
   newerSubject,
@@ -179,7 +201,7 @@ function MobileNativeChatPermissionContext({
   onOpenWorker?: () => void
   note?: ReactNode
 }): React.JSX.Element | null {
-  useMobileColorScheme()
+  const styles = useThemedStyles(stylesSheet)
   const t = useMobileTranslation()
   const neededPath = approvalBlockedPathToShow(permission)
   if (
@@ -257,6 +279,8 @@ function MobileNativeChatPermissionDetail({
   onOpenWorker?: () => void
   note?: ReactNode
 }): React.JSX.Element {
+  const colors = useMobileColors()
+  const styles = useThemedStyles(stylesSheet)
   const t = useMobileTranslation()
   const [expanded, setExpanded] = useState(false)
   const shell = detail ? readShellApprovalDetail(detail, toolName, description) : null
@@ -319,15 +343,18 @@ function MobileNativeChatPermissionDetail({
 
 const ICON_SIZE = 16
 
-const styles = themedStyleSheet(() => ({
+function markdownLineHeight(scheme: MobileColorScheme): number {
+  const { paragraph } = markdownStylesSheet.resolve(scheme)
+  return (paragraph.lineHeight * typography.bodySize) / paragraph.fontSize
+}
+
+const stylesSheet = themedStyleSheet((colors, scheme) => ({
   // Centred on the title's first line, as the question text sits in its row.
   icon: { marginTop: 13 },
   title: {
     color: colors.textPrimary,
     fontSize: typography.bodySize,
-    lineHeight:
-      (markdownStyles.paragraph.lineHeight * typography.bodySize) /
-      markdownStyles.paragraph.fontSize,
+    lineHeight: markdownLineHeight(scheme),
     fontWeight: '500'
   },
   content: { gap: 6, marginBottom: 6 },

@@ -1,97 +1,32 @@
-import React from 'react'
-import { Ellipsis, FolderOpen, Pencil, Plus, RefreshCw } from 'lucide-react'
+import React, { useState } from 'react'
+import { Ellipsis, Plus } from 'lucide-react'
+import { useLatchedOpen } from '@/app-shell/root-surfaces/use-latched-open'
+import { lazyWithRetry } from '@/app-shell/startup/lazy-with-retry'
 import { Button } from '@/components/ui/button'
+import { ContextMenu, ContextMenuTrigger } from '@/components/ui/context-menu'
+import { DropdownMenu, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu'
-import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuTrigger
-} from '@/components/ui/context-menu'
 import { cn } from '@/lib/class-names'
 import { useTranslate } from '@/i18n/use-translate'
 import { getFolderWorkspacePathStatusDescription } from '@/lib/workspace/paths/folder-workspace-path-status'
-import { getProjectGroupDefaultWorkingDirectory } from '../../../../../../shared/project/groups/project-groups'
 import type { ProjectGroup } from '../../../../../../shared/project/groups/project-group-types'
 import type { FolderWorkspacePathStatus } from '../../../../../../shared/folder-workspaces/folder-workspace-path-status'
-import {
-  getRepoExecutionHostId,
-  type ExecutionHostId
-} from '../../../../../../shared/execution-host/execution-host'
 import { ProjectHeaderHostTooltip } from './ProjectHeaderHostLabel'
 import type { ProjectHeaderHostContext } from './project-header-host-context'
-import { getFolderProjectGroupRefreshHandler } from './project-group-folder-refresh'
+import type { ProjectGroupHeaderMenuActions } from './ProjectGroupHeaderMenuContent'
 import { REPO_HEADER_ACTION_BUTTON_CLASS } from './repo-header-action-button-class'
 import {
   handleRepoHeaderActionPointerDown,
-  stopRepoHeaderKeyboardToggle,
-  stopRepoHeaderMenuEvent
+  stopRepoHeaderKeyboardToggle
 } from './header-event-guards'
 
-type ProjectGroupHeaderMenuActions = {
-  group: ProjectGroup
-  onRefresh?: (group: ProjectGroup) => void
-  onEdit: (group: ProjectGroup, focusWorkingDirectory?: boolean) => void
-  onDelete: (groupId: string, groupName: string, hostId?: ExecutionHostId) => void
-}
-
-function ProjectGroupHeaderMenuItems({
-  actions,
-  context = false
-}: {
-  actions: ProjectGroupHeaderMenuActions
-  context?: boolean
-}): React.JSX.Element {
-  const t = useTranslate()
-  const { group, onEdit, onDelete } = actions
-  const MenuItem = context ? ContextMenuItem : DropdownMenuItem
-  const onRefresh = getFolderProjectGroupRefreshHandler(group, actions.onRefresh)
-  return (
-    <>
-      {onRefresh ? (
-        <MenuItem onSelect={onRefresh}>
-          <RefreshCw className="size-3.5" />
-          {t('auto.components.sidebar.WorktreeList.refreshProjectGroup', 'Refresh projects')}
-        </MenuItem>
-      ) : null}
-      <MenuItem onSelect={() => onEdit(group)}>
-        <Pencil className="size-3.5" />
-        {t('auto.components.sidebar.WorktreeList.editProjectGroup', 'Edit Group…')}
-      </MenuItem>
-      {!getProjectGroupDefaultWorkingDirectory(group) ? (
-        <MenuItem onSelect={() => onEdit(group, true)}>
-          <FolderOpen className="size-3.5" />
-          {t(
-            'auto.components.sidebar.WorktreeList.setProjectGroupWorkingDirectory',
-            'Set working directory…'
-          )}
-        </MenuItem>
-      ) : null}
-      <MenuItem
-        variant="destructive"
-        onSelect={() => onDelete(group.id, group.name, getRepoExecutionHostId(group))}
-      >
-        {t('auto.components.sidebar.WorktreeList.902115cdbe', 'Delete group')}
-      </MenuItem>
-    </>
-  )
-}
-
-// Menu portals still bubble through the header, where the same events can drag or collapse it.
-const MENU_EVENT_GUARDS = {
-  onPointerDown: stopRepoHeaderMenuEvent,
-  onMouseDown: stopRepoHeaderMenuEvent,
-  onPointerUp: stopRepoHeaderMenuEvent,
-  onMouseUp: stopRepoHeaderMenuEvent,
-  onClick: stopRepoHeaderMenuEvent,
-  onKeyDown: stopRepoHeaderMenuEvent
-}
+const LazyProjectGroupHeaderMenuContent = lazyWithRetry(
+  () =>
+    import('./ProjectGroupHeaderMenuContent').then((module) => ({
+      default: module.ProjectGroupHeaderMenuContent
+    })),
+  { reloadKey: 'project-group-header-menu-content' }
+)
 
 export function ProjectGroupHeaderContextMenu({
   actions,
@@ -104,6 +39,8 @@ export function ProjectGroupHeaderContextMenu({
   label: string
   children: React.JSX.Element
 }): React.JSX.Element {
+  const [open, setOpen] = useState(false)
+  const hasOpened = useLatchedOpen(open)
   const header = (
     <ProjectHeaderHostTooltip label={label} context={hostContext}>
       {actions ? <ContextMenuTrigger asChild>{children}</ContextMenuTrigger> : children}
@@ -113,11 +50,13 @@ export function ProjectGroupHeaderContextMenu({
     return header
   }
   return (
-    <ContextMenu>
+    <ContextMenu onOpenChange={setOpen}>
       {header}
-      <ContextMenuContent {...MENU_EVENT_GUARDS}>
-        <ProjectGroupHeaderMenuItems actions={actions} context />
-      </ContextMenuContent>
+      {hasOpened ? (
+        <React.Suspense fallback={null}>
+          <LazyProjectGroupHeaderMenuContent actions={actions} context />
+        </React.Suspense>
+      ) : null}
     </ContextMenu>
   )
 }
@@ -130,8 +69,10 @@ export function ProjectGroupHeaderMenu({
   label: string
 }): React.JSX.Element {
   const t = useTranslate()
+  const [open, setOpen] = useState(false)
+  const hasOpened = useLatchedOpen(open)
   return (
-    <DropdownMenu modal={false}>
+    <DropdownMenu modal={false} open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
         <Button
           type="button"
@@ -151,9 +92,11 @@ export function ProjectGroupHeaderMenu({
           <Ellipsis className="size-3.5" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" side="bottom" sideOffset={6} {...MENU_EVENT_GUARDS}>
-        <ProjectGroupHeaderMenuItems actions={actions} />
-      </DropdownMenuContent>
+      {hasOpened ? (
+        <React.Suspense fallback={null}>
+          <LazyProjectGroupHeaderMenuContent actions={actions} />
+        </React.Suspense>
+      ) : null}
     </DropdownMenu>
   )
 }
