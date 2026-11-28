@@ -1,4 +1,5 @@
 import { translate } from '@/i18n/i18n'
+import { rememberAgentBrowserTab } from '@/lib/browser/tab-tree/browser-tab-tree-agent-groups'
 import { closeBrowserTabWithReply } from './browser-tab-close-with-reply'
 import { useAppStore } from '../../../store/index'
 import { acquireBrowserAutomationBootstrapLease } from './browser-automation-bootstrap-lease'
@@ -122,6 +123,9 @@ export function registerBrowserRequestIpcBridge(unsubs: (() => void)[]): void {
         // A layout-owner build draws the page once main's frame lands: answer the id it was opened under.
         const browserPageId =
           data.browserPageId ?? pages[0]?.id ?? workspace.activePageId ?? workspace.id
+        if (data.agentSession) {
+          rememberAgentBrowserTab(worktreeId, browserPageId, data.agentSession)
+        }
         acquireBrowserAutomationBootstrapLease(worktreeId, browserPageId)
         window.api.ui.replyTabCreate({ requestId: data.requestId, browserPageId })
       } catch (err) {

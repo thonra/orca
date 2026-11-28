@@ -149,6 +149,7 @@ export function renderFolderWorkspaceOption(args: {
       <div className="relative" style={{ paddingLeft: surfaceInset, paddingRight: frame?.right }}>
         <WorktreeCard
           worktree={folderWorktree}
+          showBrowserBranches
           repo={undefined}
           isActive={isActiveWorktree}
           isMultiSelected={ctx.selectedWorktreeIds.has(folderWorktreeIdentity)}

@@ -2,6 +2,13 @@ import React from 'react'
 import { LoaderCircle } from 'lucide-react'
 
 import { cn } from '@/lib/class-names'
+import {
+  BROWSER_TAB_TREE_DRAG_TYPE,
+  canDropBrowserTabTreeBranch,
+  endBrowserTabTreeDrag,
+  pinBrowserTabTreeBranch,
+  useBrowserTabTreeDropState
+} from '@/lib/browser/tab-tree/browser-tab-tree-state'
 import WorktreeContextMenu from '../../workspace-actions/context-menu/WorktreeContextMenu'
 import { useIsSleepingWorktree } from '../../workspace-actions/sleep/use-worktree-sleep-state'
 import { getWorktreeCardFrameGeometry } from './worktree-card-frame-geometry'
@@ -9,12 +16,19 @@ import type { WorktreeCardController } from '../controller/use-worktree-card-con
 import { DEFAULT_WORKSPACE_CARD_TEMPLATE } from '../template/default-workspace-card'
 import { renderWorkspaceCardTemplate } from '../template/render-workspace-card-template'
 import { WorktreeCardTitleStatusProvider } from './worktree-card-title-status'
+import { WorktreeCardBrowserBranches } from './worktree-card-browser-branches'
 
 /** Shape, inset and transitions every sidebar card row shares; inactive rows add `worktree-sidebar-card-hover`. */
 export const WORKTREE_CARD_SURFACE_CLASS_NAME =
   'relative ml-1 cursor-pointer overflow-hidden rounded-lg border border-transparent pr-1.5 outline-none select-none transition-[background-color,border-color,opacity,box-shadow] duration-200'
 
-export function WorktreeCardSurface({ card }: { card: WorktreeCardController }): React.JSX.Element {
+export function WorktreeCardSurface({
+  card,
+  showBrowserBranches
+}: {
+  card: WorktreeCardController
+  showBrowserBranches: boolean
+}): React.JSX.Element {
   const {
     worktree,
     selectedWorktrees,
@@ -46,6 +60,23 @@ export function WorktreeCardSurface({ card }: { card: WorktreeCardController }):
     handleContextMenuSelect,
     contentIndent
   } = card
+  const [isBrowserBranchDropTarget, setBrowserBranchDropTarget] = React.useState(false)
+  const browserBranchTarget = {
+    worktreeId: worktree.id,
+    executionHostId: worktree.hostId,
+    worktreeInstanceId: worktree.instanceId
+  }
+  const canPinBrowserBranches =
+    showBrowserBranches && !worktree.isArchived && !isDeleting && !isQueuedForDeletion
+  const browserTabTreeDropState = useBrowserTabTreeDropState(browserBranchTarget)
+  const browserBranchDropState =
+    showBrowserBranches && browserTabTreeDropState
+      ? canPinBrowserBranches
+        ? browserTabTreeDropState
+        : 'ineligible'
+      : null
+  const isBrowserDropHovered = browserBranchDropState === 'eligible' && isBrowserBranchDropTarget
+  const isDropTarget = isLineageDropTarget || isBrowserDropHovered
   const isSleeping = useIsSleepingWorktree(worktree.id)
   const geometryFor = (statusLane: boolean) =>
     getWorktreeCardFrameGeometry({ flushSurface, contentIndent, statusLane })
@@ -68,6 +99,12 @@ export function WorktreeCardSurface({ card }: { card: WorktreeCardController }):
   const { cardStyle } = geometryFor(frame.statusLane)
   const titleOnlyCard = frame.singleLine
 
+  const isBrowserBranchEvent = (event: React.DragEvent<HTMLDivElement>): boolean =>
+    showBrowserBranches &&
+    event.dataTransfer.types.includes(BROWSER_TAB_TREE_DRAG_TYPE) &&
+    event.target instanceof Element &&
+    event.target.closest('[data-worktree-card-surface]') === event.currentTarget
+
   const cardBody = (
     <div
       className={cn(
@@ -77,9 +114,13 @@ export function WorktreeCardSurface({ card }: { card: WorktreeCardController }):
         titleOnlyCard ? (card.compactLine ? 'py-px' : 'py-2') : 'pt-1.25 pb-1.5',
         flushSurface && 'w-[calc(100%-0.25rem)]',
         // Navigation updates the live attribute before React; it must own the complete active style.
-        isLineageDropTarget
+        isDropTarget
           ? 'border-worktree-sidebar-foreground/40 bg-worktree-sidebar-accent text-worktree-sidebar-accent-foreground ring-1 ring-inset ring-worktree-sidebar-ring/60'
-          : !isActiveSurface && 'worktree-sidebar-card-hover',
+          : browserBranchDropState === 'eligible'
+            ? 'outline-dashed outline-1 -outline-offset-1 outline-worktree-sidebar-ring/60'
+            : browserBranchDropState !== 'ineligible' &&
+              !isActiveSurface &&
+              'worktree-sidebar-card-hover',
         isActiveSurface && isMultiSelected && 'ring-1 ring-worktree-sidebar-ring/35',
         revealHighlight && [
           'scroll-to-current-workspace-reveal-highlight',
@@ -93,12 +134,14 @@ export function WorktreeCardSurface({ card }: { card: WorktreeCardController }):
       data-worktree-card-surface="true"
       data-worktree-card-single-line={titleOnlyCard || undefined}
       data-worktree-card-active={
-        isActiveSurface && !isLineageDropTarget ? activeSurfaceVariant : undefined
+        isActiveSurface && !isDropTarget ? activeSurfaceVariant : undefined
       }
       data-worktree-card-selected={
-        (isMultiSelected && !isActiveSurface && !isLineageDropTarget) || undefined
+        (isMultiSelected && !isActiveSurface && !isDropTarget) || undefined
       }
       data-worktree-lineage-drop-target={isLineageDropTarget || undefined}
+      data-worktree-browser-branch-drop-state={browserBranchDropState ?? undefined}
+      data-worktree-browser-branch-drop-target={isBrowserDropHovered || undefined}
       data-worktree-card-menu-open={card.detailsHoverControl.contextMenuOpen ? 'true' : undefined}
       onClick={handleClick}
       onPointerDown={affiliateListMode ? undefined : handlePointerDown}
@@ -108,6 +151,39 @@ export function WorktreeCardSurface({ card }: { card: WorktreeCardController }):
       draggable={!affiliateListMode && nativeDragEnabled && !isDeleting && !titleRenaming}
       onDragStart={!affiliateListMode && nativeDragEnabled ? handleDragStart : undefined}
       onDragEnd={!affiliateListMode && nativeDragEnabled ? handleDragEnd : undefined}
+      onDragOver={(event) => {
+        if (!isBrowserBranchEvent(event)) {
+          return
+        }
+        event.stopPropagation()
+        const canDrop = canPinBrowserBranches && canDropBrowserTabTreeBranch(browserBranchTarget)
+        event.dataTransfer.dropEffect = canDrop ? 'copy' : 'none'
+        setBrowserBranchDropTarget(canDrop)
+        if (canDrop) {
+          event.preventDefault()
+        }
+      }}
+      onDragLeave={(event) => {
+        if (
+          isBrowserBranchDropTarget &&
+          (!(event.relatedTarget instanceof Element) ||
+            event.relatedTarget.closest('[data-worktree-card-surface]') !== event.currentTarget)
+        ) {
+          setBrowserBranchDropTarget(false)
+        }
+      }}
+      onDrop={(event) => {
+        setBrowserBranchDropTarget(false)
+        if (isBrowserBranchEvent(event)) {
+          event.preventDefault()
+          event.stopPropagation()
+          const nodeId = event.dataTransfer.getData(BROWSER_TAB_TREE_DRAG_TYPE)
+          if (canPinBrowserBranches && nodeId) {
+            pinBrowserTabTreeBranch(browserBranchTarget, nodeId)
+          }
+          endBrowserTabTreeDrag()
+        }
+      }}
       aria-busy={isDeleting}
       style={cardStyle}
     >
@@ -121,15 +197,22 @@ export function WorktreeCardSurface({ card }: { card: WorktreeCardController }):
           </div>
         </div>
       )}
-      {newCardStyle ? (
-        // Mix tokens for background-independent sleep dimming; scope to the parent so awake children stay bright.
-        // Toggle the attribute, not the wrapper: waking must not remount the title mid-rename.
-        <div data-worktree-sleeping-dim={isSleeping && !isDeleting ? '' : undefined}>
-          {parentCardContent}
-        </div>
-      ) : (
-        parentCardContent
-      )}
+      <div
+        className={cn(
+          'transition-opacity duration-200 motion-reduce:transition-none',
+          browserBranchDropState === 'ineligible' && 'opacity-60'
+        )}
+      >
+        {newCardStyle ? (
+          // Mix tokens only for the parent card so awake children stay bright.
+          <div data-worktree-sleeping-dim={isSleeping && !isDeleting ? '' : undefined}>
+            {parentCardContent}
+          </div>
+        ) : (
+          parentCardContent
+        )}
+        {showBrowserBranches ? <WorktreeCardBrowserBranches target={browserBranchTarget} /> : null}
+      </div>
 
       {lineageChildren ? (
         <div

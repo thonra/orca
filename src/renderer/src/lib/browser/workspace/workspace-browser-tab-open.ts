@@ -8,7 +8,7 @@ import {
   workspaceBrowserLinkDestination,
   openClientWorkspaceBrowserLink,
   prepareRuntimeBrowserLink,
-  materializedBrowserLinkOutcome
+  browserTabMaterializedCallback
 } from './workspace-browser-link-open'
 import { createWebRuntimeSessionBrowserTab } from '@/runtime/browser/creation/web-runtime-browser-creation'
 import type { WebRuntimeBrowserCreationFailureInfo } from '@/runtime/browser/creation/web-runtime-browser-creation-context'
@@ -52,6 +52,7 @@ export type OpenWorkspaceBrowserTabRequest = {
   workspaceId: string
   linkContext?: BrowserLinkOpenContext
   onLinkOutcome?: (outcome: BrowserOpenOutcome) => void
+  onMaterialized?: (browserPageId: string) => void
   targetGroupId?: string
   /** Opens the tab in a new split beside this group instead of targetGroupId. */
   split?: TabSplitTarget
@@ -99,6 +100,9 @@ async function createClientBrowserTab(
       ...(request.afterTabId ? { afterTabId: request.afterTabId } : {}),
       title: presentation.title
     })
+    if (created.activePageId) {
+      request.onMaterialized?.(created.activePageId)
+    }
     return created.activePageId ?? null
   } catch (error) {
     throw clientCreateFailure(presentation.error, error)
@@ -263,12 +267,7 @@ export async function openWorkspaceBrowserTab(
       ),
       ...(destination ? { profileId: destination.sessionProfileId } : {}),
       ...(request.linkContext ? { isCurrentRequest: request.linkContext.isCurrentRequest } : {}),
-      ...(destination
-        ? {
-            onMaterialized: (pageId: string) =>
-              request.onLinkOutcome?.(materializedBrowserLinkOutcome(request, destination, pageId))
-          }
-        : {}),
+      onMaterialized: browserTabMaterializedCallback(request, destination),
       ...(request.afterTabId ? { clientAfterTabId: request.afterTabId } : {}),
       // Owner-pinned links need the host tab published before client reconciliation.
       ...(expectedEnvironmentId !== null ? { waitForRegistration: true } : {}),

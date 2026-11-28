@@ -2,6 +2,7 @@ import {
   Activity,
   Files,
   GitBranch,
+  Globe,
   House,
   ListChecks,
   MessagesSquare,
@@ -43,6 +44,12 @@ export function getDefaultRightSidebarActivityItems({
       shortcut: explorerShortcut === 'Unassigned' ? '' : explorerShortcut,
       onBotPage: true,
       labeledTab: isBot
+    },
+    {
+      id: 'browser-tabs',
+      icon: Globe,
+      title: t('browser.tabTree.title', 'Browser Tabs'),
+      shortcut: ''
     },
     {
       id: 'bot-activity',

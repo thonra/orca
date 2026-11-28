@@ -6,6 +6,7 @@ import { findPage, findWorkspace } from '@/store/slices/browser/pages/browser-pa
 import { redactKagiSessionToken } from '../../../../../shared/browser/navigation/browser-url'
 import { resolveBrowserSourceUnifiedTab } from '../workspace/browser-workspace-source-resolution'
 import { openUrlInTabBesideBrowserPage } from './browser-page-tab-opening'
+import { rememberBrowserTabOpener } from '../tab-tree/browser-tab-tree-preferences'
 
 export function isClientHostedBrowserSourcePage(browserPageId: string): boolean {
   const handle = useAppStore.getState().remoteBrowserPageHandlesByPageId?.[browserPageId]
@@ -43,7 +44,10 @@ export function openClientHostedUrlBesideBrowserPage(args: {
       url: args.url,
       ...(profileId ? { profileId } : {}),
       ...(sourceUnifiedTab ? { clientAfterTabId: sourceUnifiedTab.id } : {}),
-      ...(args.onOpened ? { onMaterialized: args.onOpened } : {}),
+      onMaterialized: (pageId) => {
+        rememberBrowserTabOpener(pageId, args.sourcePageId)
+        args.onOpened?.(pageId)
+      },
       focusOnCreate: args.activate,
       selectWorktree: false,
       stagedTitle: redactKagiSessionToken(args.url),

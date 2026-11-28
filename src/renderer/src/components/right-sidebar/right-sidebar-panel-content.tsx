@@ -7,6 +7,7 @@ import '../../../../shared/plugins/manifest/plugin-manifest'
 import { isPluginPanelTabKey } from '../../../../shared/plugins/frames/plugin-tab-key'
 
 const FileExplorer = lazy(() => import('./file-explorer/panel/FileExplorer'))
+const BrowserTabTreePanel = lazy(() => import('./browser-tabs/BrowserTabTreePanel'))
 const FolderWorkspaceSourceControl = lazy(
   () => import('./folder-workspaces/FolderWorkspaceSourceControlPanel')
 )
@@ -51,6 +52,7 @@ export function RightSidebarPanelContent({
     >
       <Suspense fallback={effectiveTab === 'bot-chats' ? <BotChatsSkeleton toolbar /> : null}>
         {effectiveTab === 'explorer' && <FileExplorer />}
+        {effectiveTab === 'browser-tabs' && <BrowserTabTreePanel />}
         {effectiveTab === 'source-control' &&
           (isFolderWorkspace ? (
             rightSidebarOpen && <FolderWorkspaceSourceControl />

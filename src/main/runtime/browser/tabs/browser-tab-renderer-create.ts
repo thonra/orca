@@ -15,7 +15,8 @@ export async function createBrowserTabInRenderer(
   requestedPageId?: string,
   /** Used only when `worktreeId` is unset and no workspace is active in the renderer. */
   fallbackWorktreeId?: string,
-  split?: { direction: BrowserTabSplitDirection; fromTabId?: string }
+  split?: { direction: BrowserTabSplitDirection; fromTabId?: string },
+  agentSession?: BrowserTabCreateRequest['agentSession']
 ): Promise<{ browserPageId: string }> {
   const windowId = host.getAuthoritativeWindowId()
   const desktop = getRuntimeDesktopSurface()
@@ -29,7 +30,8 @@ export async function createBrowserTabInRenderer(
     sessionPartition,
     activate,
     ...(fallbackWorktreeId ? { fallbackWorktreeId } : {}),
-    ...(split ? { split: split.direction, splitFromTabId: split.fromTabId } : {})
+    ...(split ? { split: split.direction, splitFromTabId: split.fromTabId } : {}),
+    ...(agentSession ? { agentSession } : {})
   }
   const reply = await desktop.requestRenderer<{
     requestId: string
