@@ -18,6 +18,7 @@ import { useTranslate } from '@/i18n/use-translate'
 import type { WorktreeContextMenuModel } from './use-worktree-context-menu-model'
 import { WorktreeStatusMenuItems } from '../../workspace-status/presentation/WorktreeStatusMenuItems'
 import { WorktreeWslHostStartMenuItem } from '../../workspace-card/host/WorktreeWslHostStartMenuItem'
+import { WorktreeMetaDialog } from '../../workspace-card/metadata/worktree-meta-dialog-preload'
 import { WorktreeContextMenuOverlays } from './WorktreeContextMenuOverlays'
 import { WorktreeNotificationMuteMenuItem } from './WorktreeNotificationMuteMenuItem'
 import { WslMovedWorkspaceUseHereMenuItem } from '@/components/wsl-move/WslMovedUseHereMenuItem'
@@ -101,9 +102,13 @@ export default function WorktreeContextMenuView({ model }: { model: WorktreeCont
     window.dispatchEvent(new Event(CLOSE_ALL_CONTEXT_MENUS_EVENT))
     setDeveloperMenuRevealed(event.altKey)
     setOpenedFromAgentRow(fromPortal || isFromWorkspaceAgentRow(event.currentTarget, event.target))
-    setContextWorktrees(
-      fromPortal ? [worktree] : (onContextMenuSelect?.(event) ?? effectiveSelectedWorktrees)
-    )
+    const contextWorktrees = fromPortal
+      ? [worktree]
+      : (onContextMenuSelect?.(event) ?? effectiveSelectedWorktrees)
+    setContextWorktrees(contextWorktrees)
+    if (contextWorktrees.length === 1 && !isDeleting) {
+      WorktreeMetaDialog.preload()
+    }
     const bounds = event.currentTarget.getBoundingClientRect()
     setMenuPoint({ x: event.clientX - bounds.left, y: event.clientY - bounds.top })
     setMenuOpenState(true)

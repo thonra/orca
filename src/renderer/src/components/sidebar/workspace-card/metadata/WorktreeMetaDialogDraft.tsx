@@ -188,6 +188,8 @@ const WorktreeMetaDialogDraft = React.memo(function WorktreeMetaDialogDraft() {
     >
       <DialogContent
         ref={setDialogElement}
+        animate={false}
+        blurBackground={false}
         className="max-h-[calc(100vh-3rem)] grid-rows-[auto_minmax(0,1fr)_auto] sm:max-w-[640px]"
         onEscapeKeyDown={(event) => {
           const search = linkInputRef.current

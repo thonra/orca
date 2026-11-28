@@ -24,6 +24,8 @@ export function renderSmartWorkspaceSourceResults(
       side="bottom"
       sideOffset={4}
       avoidCollisions={false}
+      animate={false}
+      tone="solid"
       className="popover-scroll-content flex w-[var(--radix-popover-trigger-width)] flex-col p-0"
       // Why: results must not cover the create-workspace dialog's submit footer.
       style={{ maxHeight }}

@@ -70,6 +70,8 @@ export function WorktreeJumpPaletteSurface({
             )
       }
       surface="palette"
+      animate={false}
+      blurBackground={false}
       contentClassName="top-[min(10%,4rem)] w-[900px] max-w-[96vw] max-h-[min(90vh,calc(100vh-1.5rem))] overflow-hidden"
       commandProps={{
         loop: true,
