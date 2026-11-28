@@ -1,0 +1,45 @@
+name: Fork Issue Triage
+
+on:
+  issues:
+    types: [opened]
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: Open issue number
+        type: number
+        required: true
+
+permissions:
+  issues: write
+
+jobs:
+  triage:
+    if: github.repository == 'thonra/orca' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-slim
+    timeout-minutes: 5
+    steps:
+      - name: Label and assign the issue
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        with:
+          script: |
+            const number = context.payload.issue?.number ?? context.payload.inputs?.issue_number
+            const issueNumber = Number(number)
+            if (!Number.isSafeInteger(issueNumber) || issueNumber < 1) {
+              throw new Error('Enter a positive integer issue number.')
+            }
+
+            const ref = { ...context.repo, issue_number: issueNumber }
+            const { data: issue } = await github.rest.issues.get(ref)
+            if (issue.state !== 'open' || issue.pull_request) {
+              core.info('Triage applies to open issues only.')
+              return
+            }
+
+            const triageLabel = 'needs-triage'
+            if (!issue.labels.some((label) => label === triageLabel || label.name === triageLabel)) {
+              await github.rest.issues.addLabels({ ...ref, labels: [triageLabel] })
+            }
+            if (issue.assignees.length === 0) {
+              await github.rest.issues.addAssignees({ ...ref, assignees: ['thonra'] })
+            }

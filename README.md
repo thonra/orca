@@ -351,6 +351,14 @@ Want to contribute or run locally? See our [CONTRIBUTING.md](.github/CONTRIBUTIN
 
 For a CI exception, `thonra` records the reason in the pull request before selecting **Bypass rules and merge**.
 
+### Issue triage
+
+The Bug report, Feature request, Maintenance task, and Question forms add `bug`, `enhancement`, `maintenance`, and `question` respectively. Use `Other` when the category is unclear. Apply the appropriate category during triage. The Bug report also uses the OS and client selections to label the report.
+
+[Fork Issue Triage](.github/workflows/fork-issue-triage.yml) adds `needs-triage` to new issues and assigns unassigned issues to `thonra` for review. Once the issue is understood, set its category, agree on its owner if someone will take it on, and remove `needs-triage`. To apply intake to an existing open issue, run the workflow from `main` with its issue number.
+
+The Orca Fork GitHub Project uses `Todo` for incoming issues. Move an issue to `In Progress` when work starts. Closing the issue moves it to `Done`, and reopening it returns it to `Todo`.
+
 ### Upstream syncs
 
 Review `upstream/main` weekly and prioritize relevant security fixes. Use a dedicated sync branch and pull request. If your clone has only `origin`, add the upstream remote once with `git remote add -t main upstream https://github.com/stablyai/orca.git`.
