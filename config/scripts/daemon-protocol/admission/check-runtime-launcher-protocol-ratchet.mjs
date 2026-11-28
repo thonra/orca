@@ -1,5 +1,5 @@
 // R3/D7.1: never combine runtime-host swaps with daemon protocol bumps; together they strand live terminals on upgrade and rollback.
-// Usage: node check-runtime-launcher-protocol-ratchet.mjs --base <ref>
+// Usage: node check-runtime-launcher-protocol-ratchet.mjs --base <ref> [--verified-upstream <ref>]
 import { execFileSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
@@ -84,23 +84,49 @@ export function isOverrideEnabled(env = process.env) {
   return ['1', 'true'].includes(env[RUNTIME_PROTOCOL_OVERRIDE_ENV]?.trim().toLowerCase() ?? '')
 }
 
-export function checkRuntimeLauncherProtocolRatchet({ repoRoot, base, env = process.env }) {
+export function checkRuntimeLauncherProtocolRatchet({
+  repoRoot,
+  base,
+  verifiedUpstream,
+  env = process.env
+}) {
+  let comparisonBase = base
+  if (verifiedUpstream) {
+    // A sync can import separately landed upstream changes. Use that history only if the
+    // merge leaves the protocol and launcher files exactly as they were upstream.
+    const protectedChanges = git(repoRoot, [
+      'diff',
+      '--name-only',
+      '--no-renames',
+      verifiedUpstream,
+      '--',
+      DAEMON_PROTOCOL_SOURCE_PATH,
+      ...RUNTIME_LAUNCHER_PATHS
+    ]).trim()
+    if (protectedChanges.length === 0) {
+      comparisonBase = verifiedUpstream
+    }
+  }
   // Why diff against the working tree: CI's tree is HEAD, and a local run also sees unstaged edits.
-  const changedFiles = git(repoRoot, ['diff', '--name-only', '--no-renames', base, '--'])
+  const changedFiles = git(repoRoot, ['diff', '--name-only', '--no-renames', comparisonBase, '--'])
     .split('\n')
     .map((line) => line.trim())
     .filter(Boolean)
-  const baseFacts = readDaemonProtocolRevisionFacts(repoRoot, base)
+  const baseFacts = readDaemonProtocolRevisionFacts(repoRoot, comparisonBase)
   const candidateFacts = parseDaemonProtocolFacts(
     readFileSync(join(repoRoot, DAEMON_PROTOCOL_SOURCE_PATH), 'utf8'),
     DAEMON_PROTOCOL_SOURCE_PATH
   )
-  return assessRuntimeLauncherProtocolRatchet({
+  const assessment = assessRuntimeLauncherProtocolRatchet({
     changedFiles,
     baseProtocolVersion: baseFacts.protocolVersion,
     candidateProtocolVersion: candidateFacts.protocolVersion,
     overridden: isOverrideEnabled(env)
   })
+  if (comparisonBase !== base) {
+    assessment.lines.unshift(`R3 comparison base is verified upstream ${comparisonBase}`)
+  }
+  return assessment
 }
 
 function parseArgs(argv) {
@@ -109,14 +135,19 @@ function parseArgs(argv) {
   if (!value || value.startsWith('--')) {
     throw new Error('--base <ref> is required (the pull request diff base)')
   }
-  return { base: value }
+  const upstreamIndex = argv.indexOf('--verified-upstream')
+  const verifiedUpstream = upstreamIndex === -1 ? undefined : argv[upstreamIndex + 1]
+  if (upstreamIndex !== -1 && (!verifiedUpstream || verifiedUpstream.startsWith('--'))) {
+    throw new Error('--verified-upstream requires a ref')
+  }
+  return { base: value, verifiedUpstream }
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
   const repoRoot = resolve(import.meta.dirname, '../../..', '..')
   try {
-    const { base } = parseArgs(process.argv.slice(2))
-    const result = checkRuntimeLauncherProtocolRatchet({ repoRoot, base })
+    const { base, verifiedUpstream } = parseArgs(process.argv.slice(2))
+    const result = checkRuntimeLauncherProtocolRatchet({ repoRoot, base, verifiedUpstream })
     for (const line of result.lines) {
       console.log(line)
     }

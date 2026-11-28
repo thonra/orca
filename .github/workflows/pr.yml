@@ -783,10 +783,34 @@ jobs:
       - name: Runtime launcher change does not bump daemon protocol
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          SYNC_PULL_BASE: ${{ github.event.pull_request.base.ref }}
+          SYNC_PULL_BRANCH: ${{ github.event.pull_request.head.ref }}
+          SYNC_PULL_HEAD: ${{ github.event.pull_request.head.sha }}
+          SYNC_PULL_REPO: ${{ github.event.pull_request.head.repo.full_name }}
           ORCA_ALLOW_RUNTIME_LAUNCHER_PROTOCOL_BUMP: ${{ contains(github.event.pull_request.labels.*.name, 'allow-runtime-launcher-protocol-bump') }}
         run: |
           DIFF_BASE="$(node config/scripts/git/pr-diff-base/git-pull-request-diff-base.mjs "$BASE_SHA")"
-          pnpm run check:runtime-launcher-protocol-ratchet -- --base "$DIFF_BASE"
+          ratchet_args=(--base "$DIFF_BASE")
+          if [[ "$GITHUB_REPOSITORY" == thonra/orca && "$SYNC_PULL_REPO" == "$GITHUB_REPOSITORY" &&
+                "$SYNC_PULL_BASE" == main && "$SYNC_PULL_BRANCH" =~ ^sync/upstream-([0-9a-f]{4,40})$ ]]; then
+            upstream_prefix="${BASH_REMATCH[1]}"
+            sync_merge=$(git rev-list --first-parent --merges "$DIFF_BASE..$SYNC_PULL_HEAD")
+            if [[ -z "$sync_merge" || "$sync_merge" == *$'\n'* ]]; then
+              echo '::error::Expected one upstream sync merge on the PR first-parent history.'
+              exit 1
+            fi
+            read -r fork_parent upstream_parent extra_parent <<< "$(git show -s --format=%P "$sync_merge")"
+            if [[ "$fork_parent" != "$DIFF_BASE" || "$upstream_parent" != "$upstream_prefix"* || -n "$extra_parent" ]]; then
+              echo '::error::The merge parents must match the fork base and upstream SHA in the sync branch name.'
+              exit 1
+            fi
+            git fetch --quiet --no-tags --filter=blob:none https://github.com/stablyai/orca.git refs/heads/main
+            git merge-base --is-ancestor "$upstream_parent" FETCH_HEAD
+            git merge-base --is-ancestor "$upstream_parent" HEAD
+            pnpm run check:daemon-protocol-crossing -- --release-ref "$DIFF_BASE"
+            ratchet_args+=(--verified-upstream "$upstream_parent")
+          fi
+          pnpm run check:runtime-launcher-protocol-ratchet -- "${ratchet_args[@]}"
 
       # Run the entire directory; zero matches fail so new contracts cannot be omitted silently.
       - name: Old/new client and server compatibility journeys
