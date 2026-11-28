@@ -178,7 +178,6 @@ export function ProjectGroupNameDialog({
         ref={handleDialogContentRef}
         busy={submitting}
         animate={false}
-        blurBackground={false}
         className="max-w-sm sm:max-w-sm"
         {...(description ? {} : { 'aria-describedby': undefined })}
         onOpenAutoFocus={(event) => {
