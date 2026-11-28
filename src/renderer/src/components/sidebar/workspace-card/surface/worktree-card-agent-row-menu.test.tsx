@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
-import { afterEach, expect, it } from 'vitest'
+import { afterEach, expect, it, vi } from 'vitest'
 import { ConfirmationDialogContext } from '@/components/dismiss/confirmation/confirmation-dialog-context'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { useAppStore } from '@/store'
@@ -18,7 +18,9 @@ import WorktreeCard from './WorktreeCard'
 
 const declineConfirmation = async (): Promise<boolean> => false
 
-afterEach(() => {
+afterEach(async () => {
+  // Full agent rows preload Markdown on mount. Let its module graph settle before teardown.
+  await act(() => vi.dynamicImportSettled())
   cleanup()
   clearWorktreeAgentExpansionStateForTests()
   useAppStore.setState(useAppStore.getInitialState(), true)

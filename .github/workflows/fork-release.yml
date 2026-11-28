@@ -29,17 +29,28 @@ jobs:
     outputs:
       tag: ${{ steps.version.outputs.tag }}
       archive: ${{ steps.version.outputs.archive }}
+      upstream_sha: ${{ steps.version.outputs.upstream_sha }}
     steps:
-      - name: Resolve fork tag and asset name
+      - name: Resolve integrated upstream commit and fork tag
         id: version
         env:
           VERSION: ${{ inputs.version }}
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
         run: |
           if [[ ! "$VERSION" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
             echo '::error::Use a fork version in the form X.Y.Z, for example 0.1.0.'
             exit 1
           fi
-          printf 'tag=thonra-v%s\narchive=orca-thonra-v%s-source.tar.gz\n' "$VERSION" "$VERSION" >> "$GITHUB_OUTPUT"
+          upstream_sha=$(gh api "repos/$GH_REPO/compare/stablyai:main...$GITHUB_SHA?per_page=1" \
+            --jq '.merge_base_commit.sha // ""')
+          if [[ ! "$upstream_sha" =~ ^[0-9a-f]{40}$ ]]; then
+            echo '::error::Could not resolve the integrated upstream commit.'
+            exit 1
+          fi
+          tag="f-$VERSION-${upstream_sha:0:12}"
+          printf 'tag=%s\narchive=%s-source.tar.gz\nupstream_sha=%s\n' \
+            "$tag" "$tag" "$upstream_sha" >> "$GITHUB_OUTPUT"
 
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
@@ -58,7 +69,7 @@ jobs:
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
           asset_dir="$RUNNER_TEMP/fork-release"
           mkdir -p "$asset_dir"
-          git archive --format=tar --prefix="orca-$TAG/" "$GITHUB_SHA" \
+          git archive --format=tar --prefix="$TAG/" "$GITHUB_SHA" \
             | gzip -n > "$asset_dir/$ARCHIVE"
           cd "$asset_dir"
           gzip -t "$ARCHIVE"
@@ -98,24 +109,27 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
+          VERSION: ${{ inputs.version }}
           TAG: ${{ needs.archive.outputs.tag }}
           ARCHIVE: ${{ needs.archive.outputs.archive }}
+          UPSTREAM_SHA: ${{ needs.archive.outputs.upstream_sha }}
         run: |
+          version_prefix="f-$VERSION-"
           releases=$(gh api --paginate --slurp "repos/$GH_REPO/releases?per_page=100")
-          has_release=$(jq --arg tag "$TAG" 'any(.[][]; .tag_name == $tag)' <<< "$releases")
+          has_release=$(jq --arg prefix "$version_prefix" 'any(.[][]; .tag_name | startswith($prefix))' <<< "$releases")
           if [[ "$has_release" == true ]]; then
-            echo "::error::A release or draft for $TAG already exists. Check the Releases page."
+            echo "::error::A release or draft for fork version $VERSION already exists. Check the Releases page."
             exit 1
           fi
 
-          existing_refs=$(gh api "repos/$GH_REPO/git/matching-refs/tags/$TAG" --jq '.[].ref')
-          if grep -Fxq "refs/tags/$TAG" <<< "$existing_refs"; then
-            echo "::error::Tag $TAG already exists. Use a new release version."
+          existing_refs=$(gh api "repos/$GH_REPO/git/matching-refs/tags/$version_prefix" --jq '.[].ref')
+          if [[ -n "$existing_refs" ]]; then
+            echo "::error::A tag for fork version $VERSION already exists. Use a new release version."
             exit 1
           fi
 
           notes_flags=(--generate-notes)
-          previous_tag=$(jq -r '[.[][] | select((.tag_name | startswith("thonra-v")) and (.draft or .prerelease | not)) | .tag_name][0] // ""' <<< "$releases")
+          previous_tag=$(jq -r '[.[][] | select((.tag_name | test("^f-[0-9]+\\.[0-9]+\\.[0-9]+-[0-9a-f]{12}$")) and (.draft or .prerelease | not)) | .tag_name][0] // ""' <<< "$releases")
           if [[ -n "$previous_tag" ]]; then
             comparison=$(gh api "repos/$GH_REPO/compare/$previous_tag...$GITHUB_SHA?per_page=1" --jq .status)
             if [[ "$comparison" != ahead ]]; then
@@ -125,9 +139,9 @@ jobs:
             notes_flags+=(--notes-start-tag "$previous_tag")
           fi
 
-          notes=$(printf 'Source commit `%s`. This release contains a source archive and SHA-256 checksums.\n\n[Build run](%s/%s/actions/runs/%s).\n' \
-            "$GITHUB_SHA" "$GITHUB_SERVER_URL" "$GH_REPO" "$GITHUB_RUN_ID")
+          notes=$(printf 'Fork source commit `%s`. Integrated upstream commit `%s`.\n\nThis release contains a source archive and SHA-256 checksums. [Build run](%s/%s/actions/runs/%s).\n' \
+            "$GITHUB_SHA" "$UPSTREAM_SHA" "$GITHUB_SERVER_URL" "$GH_REPO" "$GITHUB_RUN_ID")
           draft_url=$(gh release create "$TAG" "$ARCHIVE" SHA256SUMS \
-            --draft --target "$GITHUB_SHA" --title "Orca Fork ${TAG#thonra-v}" \
+            --draft --target "$GITHUB_SHA" --title "$TAG" \
             --notes "$notes" "${notes_flags[@]}")
           printf 'Review and publish [%s](%s) from GitHub Releases.\n' "$TAG" "$draft_url" >> "$GITHUB_STEP_SUMMARY"
