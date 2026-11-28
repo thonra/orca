@@ -371,16 +371,16 @@ Resolve conflicts on the sync branch, run the contributor checks, and smoke-test
 
 ### Fork releases
 
-Review merged changes weekly and prepare a release when there is a verified set of changes to share. Run **Fork Release** on `main` with a version such as `0.1.0`. The default `create_draft=false` checks README links, builds the source archive, and verifies its checksum. Set `create_draft` to `true` to prepare a draft for `thonra-v0.1.0` with the archive, `SHA256SUMS`, and generated notes. [Fork Release workflow](.github/workflows/fork-release.yml) · [Run Fork Release](https://github.com/thonra/orca/actions/workflows/fork-release.yml)
+Review merged changes weekly and prepare a release when there is a verified set of changes to share. Run **Fork Release** on `main` with a version such as `0.1.0`. The default `create_draft=false` checks README links, builds the source archive, and verifies its checksum. Set `create_draft` to `true` to prepare a draft for `orca-v0.1.0` with the archive, `SHA256SUMS`, and generated notes. [Fork Release workflow](.github/workflows/fork-release.yml) · [Run Fork Release](https://github.com/thonra/orca/actions/workflows/fork-release.yml)
 
 Confirm the draft targets the commit recorded in its notes and review the assets before publishing. GitHub locks the tag and assets when the release goes public. [Fork releases](https://github.com/thonra/orca/releases)
 
 To run a fork release from source, install the development prerequisites and check out its tag in a linked worktree. `pnpm dev` uses a separate profile and ports for that worktree. [Local setup](.github/CONTRIBUTING.md#local-setup) · [Worktree profiles](docs/development.md#dev-profiles-and-parallel-instances)
 
 ```sh
-git fetch origin tag thonra-v0.1.0
-git worktree add --detach ../orca-thonra-v0.1.0 thonra-v0.1.0
-cd ../orca-thonra-v0.1.0
+git fetch origin tag orca-v0.1.0
+git worktree add --detach ../orca-v0.1.0 orca-v0.1.0
+cd ../orca-v0.1.0
 pnpm install --frozen-lockfile
 pnpm -C mobile install --frozen-lockfile
 pnpm dev
