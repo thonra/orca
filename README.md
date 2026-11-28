@@ -33,7 +33,7 @@ This long-lived fork of Orca focuses on organizing agent work across repositorie
 
 Upstream has thousands of open issues and pull requests, and the timing of upstream reviews and merges is hard to plan around. Maintaining this fork lets us build and use the features we need on our own schedule. [Open issues](https://github.com/stablyai/orca/issues?q=is%3Aissue+is%3Aopen) · [Open pull requests](https://github.com/stablyai/orca/pulls?q=is%3Apr+is%3Aopen)
 
-The download and release links on this page point to upstream Orca. To run the fork, follow the [local setup guide](.github/CONTRIBUTING.md#local-setup) in this checkout. See [fork maintenance](#fork-maintenance) for how changes land here.
+The Orca download links point to upstream builds. To run the fork, follow the [local setup guide](.github/CONTRIBUTING.md#local-setup) in this checkout. See [fork maintenance](#fork-maintenance) for how changes land here.
 
 ## Features
 
@@ -343,9 +343,11 @@ Want to contribute or run locally? See our [CONTRIBUTING.md](.github/CONTRIBUTIN
 
 `origin/main` is the integration branch for `thonra/orca`. It carries both upstream updates and fork changes. `upstream/main` tracks `stablyai/orca`. Keep the published history of the fork's `main` intact.
 
-### Fork changes
+### From issue to merge
 
-Start each `feat/*` or `fix/*` branch from the latest `origin/main` and open a focused pull request against the fork's `main`. Describe the user-facing change and how you verified it. For code changes, follow the [contributor checks](.github/CONTRIBUTING.md#checks-before-opening-a-pr) and exercise the workflows you touched.
+1. Open an issue on the fork with the problem and the outcome you expect. Split larger changes into issues that can land independently. [Fork issues](https://github.com/thonra/orca/issues)
+2. Start a short-lived `feat/*`, `fix/*`, or `chore/*` branch from the latest `origin/main`. Open a small pull request against the fork's `main` and link the issue. Use `Closes #N` when merging the PR completes the issue.
+3. Describe what changed and how you verified it. For code changes, run the contributor checks and exercise the workflows you touched. Merge after review and applicable checks pass, then delete the topic branch. [Contributor checks](.github/CONTRIBUTING.md#checks-before-opening-a-pr)
 
 ### Upstream syncs
 
@@ -366,6 +368,23 @@ git merge --no-edit upstream/main
 ```
 
 Resolve conflicts on the sync branch, run the contributor checks, and smoke-test any affected fork workflows. If upstream now covers a fork patch, verify the behavior before removing the duplicate. Push the sync branch to `origin` and open a pull request against the fork's `main`. Record the upstream commit SHA, conflict resolutions, and validation results. Land the pull request with a merge commit so the original upstream commits are ancestors of the fork's `main`.
+
+### Fork releases
+
+Review merged changes weekly and prepare a release when there is a verified set of changes to share. Run **Fork Release** on `main` with a version such as `0.1.0`. The default `create_draft=false` checks README links, builds the source archive, and verifies its checksum. Set `create_draft` to `true` to prepare a draft for `thonra-v0.1.0` with the archive, `SHA256SUMS`, and generated notes. [Fork Release workflow](.github/workflows/fork-release.yml) · [Run Fork Release](https://github.com/thonra/orca/actions/workflows/fork-release.yml)
+
+Confirm the draft targets the commit recorded in its notes and review the assets before publishing. GitHub locks the tag and assets when the release goes public. [Fork releases](https://github.com/thonra/orca/releases)
+
+To run a fork release from source, install the development prerequisites and check out its tag in a linked worktree. `pnpm dev` uses a separate profile and ports for that worktree. [Local setup](.github/CONTRIBUTING.md#local-setup) · [Worktree profiles](docs/development.md#dev-profiles-and-parallel-instances)
+
+```sh
+git fetch origin tag thonra-v0.1.0
+git worktree add --detach ../orca-thonra-v0.1.0 thonra-v0.1.0
+cd ../orca-thonra-v0.1.0
+pnpm install --frozen-lockfile
+pnpm -C mobile install --frozen-lockfile
+pnpm dev
+```
 
 ### Contributions to upstream
 
