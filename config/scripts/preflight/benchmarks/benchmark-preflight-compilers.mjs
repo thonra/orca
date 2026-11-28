@@ -24,8 +24,11 @@ const reportName = parityOnly ? 'compiler-parity' : 'compilers'
 mkdirSync(output, { recursive: true })
 const bun = process.env.ORCA_BENCHMARK_BUN ?? 'bun'
 const env = { ...process.env, ORCA_BACKGROUND_LAUNCH: '1', GOMAXPROCS: '4' }
+const NATIVE_CHECKERS = 1
+const NATIVE_BUDGET_GIB = 12
 const report = {
   sourceSha: process.env.GITHUB_SHA ?? null,
+  nativeCheckers: NATIVE_CHECKERS,
   host: {
     platform: process.platform,
     arch: process.arch,
@@ -35,7 +38,7 @@ const report = {
   },
   method: parityOnly
     ? 'Diagnostic probes and normalized file-list parity for every registered project; no timing comparison.'
-    : 'Four counterbalanced pairs per comparison. Cold removes build state, not filesystem caches. Warm immediately follows its cold run. Same commit and project registry for every arm.',
+    : 'Four counterbalanced pairs per comparison. Cold removes build state, not filesystem caches. Warm immediately follows its cold run. Native uses one checker per project and runs the Node project alone to fit standard runners. Same commit and project registry for every arm.',
   measurements: [],
   comparisons: {},
   parity: []
@@ -60,10 +63,23 @@ report.host.bun = version.stdout.trim()
 report.host.typescript = JSON.parse(
   readFileSync(path.join(root, 'node_modules/typescript/package.json'))
 ).version
-const nativeBatches = planTypecheckBatches(TYPECHECK_PROJECTS, {
-  budgetGib: Math.min(12, admissibleHeapGib(totalmem())),
-  parallelism: Math.min(4, availableParallelism())
-})
+// On ARM, the Node project peaks near 21 GiB with four native checkers and 10.3 GiB with one.
+// Reserve the entire native batch for that project so the standard 16 GiB runner has headroom.
+const nativeBatches = planTypecheckBatches(
+  TYPECHECK_PROJECTS.map((project) =>
+    project.config === 'config/tsconfig.node.json'
+      ? { ...project, heapGib: NATIVE_BUDGET_GIB }
+      : project
+  ),
+  {
+    budgetGib: Math.min(NATIVE_BUDGET_GIB, admissibleHeapGib(totalmem())),
+    parallelism: Math.min(4, availableParallelism())
+  }
+)
+const bunPairBatches = []
+for (let index = 0; index < TYPECHECK_PROJECTS.length; index += 2) {
+  bunPairBatches.push(TYPECHECK_PROJECTS.slice(index, index + 2))
+}
 function invocation(config, arm, extra = []) {
   return arm === 'native'
     ? [
@@ -75,6 +91,8 @@ function invocation(config, arm, extra = []) {
           config,
           '--pretty',
           'false',
+          '--checkers',
+          String(NATIVE_CHECKERS),
           ...extra
         ]
       ]
@@ -97,7 +115,7 @@ async function suite(arm, state, pair, comparison) {
     arm === 'native'
       ? nativeBatches
       : arm === 'bun-pair'
-        ? [TYPECHECK_PROJECTS.slice(0, 2), TYPECHECK_PROJECTS.slice(2)]
+        ? bunPairBatches
         : TYPECHECK_PROJECTS.map((project) => [project])
   const start = performance.now()
   const projects = []
@@ -177,10 +195,6 @@ if (!parityOnly) {
     save()
   }
 }
-// Why one checker: each tsgo checker holds its own types, so tsconfig.node peaks near 22 GB with
-// four and 16 GB with one, and the 16 GB Windows runner pages past the timeout. Diagnostics match.
-const NATIVE_PROBE_FLAGS = ['--checkers', '1']
-const probeFlags = (arm) => (arm === 'native' ? NATIVE_PROBE_FLAGS : [])
 const probeRoots = new Map([
   ['config/tsconfig.node.json', 'src/main'],
   ['config/tsconfig.tc.web.json', 'src/renderer/src'],
@@ -207,7 +221,7 @@ for (const { config } of TYPECHECK_PROJECTS) {
       { flag: 'wx' }
     )
     for (const arm of ['native', 'bun']) {
-      const [program, args] = invocation(config, arm, probeFlags(arm))
+      const [program, args] = invocation(config, arm)
       const result = await command(program, args, `probe-${path.basename(config)}-${arm}`)
       report.parity.push({ config, arm, ...result })
       save()
@@ -265,7 +279,7 @@ for (const { config } of TYPECHECK_PROJECTS) {
   }
   save()
 }
-const summary = `Compiler comparison on ${process.platform}/${process.arch}, ${report.host.cores} cores\n\n\`\`\`json\n${JSON.stringify(report.comparisons, null, 2)}\n\`\`\`\n\nAll project file lists match after normalizing embedded standard-library names; both compilers report identical diagnostics for assignment, return-type, strict-null and implicit-any probes under each project's existing settings.\n`
+const summary = `Compiler comparison on ${process.platform}/${process.arch}, ${report.host.cores} cores\n\n${report.method}\n\n\`\`\`json\n${JSON.stringify(report.comparisons, null, 2)}\n\`\`\`\n\nAll project file lists match after normalizing embedded standard-library names; both compilers report identical diagnostics for assignment, return-type, strict-null and implicit-any probes under each project's existing settings.\n`
 writeFileSync(path.join(output, `${reportName}.md`), summary)
 if (process.env.GITHUB_STEP_SUMMARY) {
   writeFileSync(process.env.GITHUB_STEP_SUMMARY, summary, { flag: 'a' })
