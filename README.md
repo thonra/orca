@@ -349,6 +349,8 @@ Want to contribute or run locally? See our [CONTRIBUTING.md](.github/CONTRIBUTIN
 2. Start a short-lived `feat/*`, `fix/*`, or `chore/*` branch from the latest `origin/main`. Open a small pull request against the fork's `main` and link the issue. Use `Closes #N` when merging the PR completes the issue.
 3. Describe what changed and how you verified it. For code changes, run the contributor checks and exercise the workflows you touched. Merge after review and applicable checks pass, then delete the topic branch. [Contributor checks](.github/CONTRIBUTING.md#checks-before-opening-a-pr)
 
+For a CI exception, `thonra` records the reason in the pull request before selecting **Bypass rules and merge**.
+
 ### Upstream syncs
 
 Review `upstream/main` weekly and prioritize relevant security fixes. Use a dedicated sync branch and pull request. If your clone has only `origin`, add the upstream remote once with `git remote add -t main upstream https://github.com/stablyai/orca.git`.
