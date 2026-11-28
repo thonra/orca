@@ -1,41 +1,22 @@
-import type { RuntimeFileSearch } from '../files/search/file-search'
-import type { RuntimeTerminalArtifacts } from '../terminal/artifacts/terminal-artifacts'
-import type { RuntimeFileAccess } from '../files/file-access'
-import type { RuntimeFileReads } from '../files/file-reads'
-import type { RuntimeFileMutations } from '../files/file-mutations'
-import type { RuntimeStagedFileSaves } from '../files/staged-file-save-commands'
+import type {
+  RuntimeFileAccessSurface,
+  RuntimeFileMutationsSurface,
+  RuntimeFileReadsSurface,
+  RuntimeFileSearchSurface
+} from '../files/lazy-runtime-file-commands'
+import type {
+  RuntimeStagedFileSavesSurface,
+  RuntimeTerminalArtifactsSurface,
+  RuntimeTerminalPathResolverSurface
+} from '../files/lazy-runtime-file-transfer-commands'
 import type { RuntimeFileWatches } from '../files/watch/file-watches'
-import type { RuntimeTerminalPathResolver } from '../terminal/terminal-path-resolver'
 
-export type RuntimeFileCommandSurface = Pick<
-  RuntimeFileSearch,
-  | 'listMobileFiles'
-  | 'searchMobileFilePaths'
-  | 'searchQuickOpenFilePaths'
-  | 'searchRuntimeFiles'
-  | 'listRuntimeFiles'
-> &
+export type RuntimeFileCommandSurface = RuntimeFileSearchSurface &
+  RuntimeFileAccessSurface &
+  RuntimeFileReadsSurface &
+  Pick<RuntimeTerminalPathResolverSurface, 'resolveTerminalPath'> &
   Pick<
-    RuntimeFileAccess,
-    | 'openMobileFile'
-    | 'openMobileDiff'
-    | 'listRuntimeMarkdownDocuments'
-    | 'pathsExistRuntimeFiles'
-    | 'statRuntimeFile'
-  > &
-  Pick<
-    RuntimeFileReads,
-    | 'readMobileFile'
-    | 'readFileExplorerPreview'
-    | 'readChatImagePreview'
-    | 'readFileExplorerChunk'
-    | 'readHostFileChunk'
-    | 'readDocPreviewFile'
-    | 'readDocPreviewChunk'
-  > &
-  Pick<RuntimeTerminalPathResolver, 'resolveTerminalPath'> &
-  Pick<
-    RuntimeTerminalArtifacts,
+    RuntimeTerminalArtifactsSurface,
     | 'readTerminalArtifactFile'
     | 'readTerminalArtifactPreview'
     | 'statTerminalArtifact'
@@ -44,32 +25,18 @@ export type RuntimeFileCommandSurface = Pick<
     | 'revokeTerminalFileGrantsForClient'
   > &
   Pick<RuntimeFileWatches, 'readFileExplorerDir' | 'watchFileExplorer'> &
-  Pick<
-    RuntimeFileMutations,
-    | 'writeFileExplorerFile'
-    | 'formatFileExplorerText'
-    | 'writeFileExplorerFileBase64'
-    | 'writeFileExplorerFileBase64Chunk'
-    | 'createFileExplorerFile'
-    | 'createFileExplorerDir'
-    | 'createFileExplorerDirNoClobber'
-    | 'commitFileExplorerUpload'
-    | 'replaceFileExplorerFileWithUpload'
-    | 'renameFileExplorerPath'
-    | 'copyFileExplorerPath'
-    | 'deleteFileExplorerPath'
-  > & { readonly stagedFileSaves: RuntimeStagedFileSaves }
+  RuntimeFileMutationsSurface & { readonly stagedFileSaves: RuntimeStagedFileSavesSurface }
 
 export function installRuntimeFileCommandSurface(
   target: RuntimeFileCommandSurface,
-  fileSearch: RuntimeFileSearch,
-  terminalArtifacts: RuntimeTerminalArtifacts,
-  fileAccess: RuntimeFileAccess,
-  fileReads: RuntimeFileReads,
-  fileMutations: RuntimeFileMutations,
-  stagedFileSaveCommands: RuntimeStagedFileSaves,
+  fileSearch: RuntimeFileSearchSurface,
+  terminalArtifacts: RuntimeTerminalArtifactsSurface,
+  fileAccess: RuntimeFileAccessSurface,
+  fileReads: RuntimeFileReadsSurface,
+  fileMutations: RuntimeFileMutationsSurface,
+  stagedFileSaveCommands: RuntimeStagedFileSavesSurface,
   fileWatches: RuntimeFileWatches,
-  terminalPaths: RuntimeTerminalPathResolver
+  terminalPaths: RuntimeTerminalPathResolverSurface
 ): void {
   Object.assign(target, {
     listMobileFiles: fileSearch.listMobileFiles.bind(fileSearch),
