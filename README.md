@@ -29,7 +29,9 @@
 
 ## About this fork
 
-This long-lived fork of [stablyai/orca](https://github.com/stablyai/orca) focuses on organizing agent work across repositories and keeping the desktop responsive. It regularly merges upstream features and fixes while developing its own improvements, including editable sidebar project groups, lighter workspace dialogs, and chat recovery UI refinements. [Compare the fork with upstream](https://github.com/stablyai/orca/compare/main...thonra:main).
+This long-lived fork of Orca focuses on organizing agent work across repositories and keeping the desktop responsive. We regularly merge upstream features and fixes while developing our own improvements. [Upstream repository](https://github.com/stablyai/orca) · [Compare with upstream](https://github.com/stablyai/orca/compare/main...thonra:main)
+
+Upstream has thousands of open issues and pull requests, and the timing of upstream reviews and merges is hard to plan around. Maintaining this fork lets us build and use the features we need on our own schedule. [Open issues](https://github.com/stablyai/orca/issues?q=is%3Aissue+is%3Aopen) · [Open pull requests](https://github.com/stablyai/orca/pulls?q=is%3Apr+is%3Aopen)
 
 The download and release links on this page point to upstream Orca. To run the fork, follow the [local setup guide](.github/CONTRIBUTING.md#local-setup) in this checkout. See [fork maintenance](#fork-maintenance) for how changes land here.
 
