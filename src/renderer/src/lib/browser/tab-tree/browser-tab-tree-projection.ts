@@ -8,6 +8,10 @@ import {
 } from '../../../../../shared/worktree/host-qualified-identity'
 import type { Worktree } from '../../../../../shared/worktree/types'
 import { useAppStore } from '@/store/index'
+import {
+  selectFolderWorkspaces,
+  selectWorktreesByRepo
+} from '@/store/workspaces/catalog/workspace-record-fields'
 import type { AppState } from '@/store/types'
 import { selectSidebarChildrenByParentIdentity } from '@/store/slices/worktrees/metadata/cross-store-lineage-parents'
 import {
@@ -47,12 +51,12 @@ function selectTreeInputs(state: AppState, statuses: RuntimeStatuses, includeSel
           )
         : undefined,
     children: selectSidebarChildrenByParentIdentity(state, statuses),
-    worktreesByRepo: state.worktreesByRepo,
-    folderWorkspaces: state.folderWorkspaces,
+    worktreesByRepo: selectWorktreesByRepo(state),
+    folderWorkspaces: selectFolderWorkspaces(state),
     tabs: state.browserTabsByWorktree,
     pages: state.browserPagesByWorkspace,
     unified: state.unifiedTabsByWorktree,
-    activeBrowserTabId: includeSelection ? state.activeBrowserTabId : null,
+    selectedBrowserTabId: includeSelection ? state.activeBrowserTabId : null,
     activeView: includeSelection ? state.activeTabType : null,
     getWorktree: state.getKnownWorktreeById
   }
@@ -159,7 +163,7 @@ function projectTree(
           active:
             getWorktreeHostIdentity(owner) === activeIdentity &&
             inputs.activeView === 'browser' &&
-            inputs.activeBrowserTabId === tab.id &&
+            inputs.selectedBrowserTabId === tab.id &&
             (tab.activePageId ?? tab.id) === page.id
         })
       }
