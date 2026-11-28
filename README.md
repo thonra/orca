@@ -27,6 +27,12 @@
   <img src="docs/assets/readme-hero.jpg" alt="Orca desktop app with a coordinator agent running worker agents in parallel workspaces, and the Orca mobile app in the corner" width="960" />
 </p>
 
+## About this fork
+
+This long-lived fork of [stablyai/orca](https://github.com/stablyai/orca) focuses on organizing agent work across repositories and keeping the desktop responsive. It regularly merges upstream features and fixes while developing its own improvements, including editable sidebar project groups, lighter workspace dialogs, and chat recovery UI refinements. [Compare the fork with upstream](https://github.com/stablyai/orca/compare/main...thonra:main).
+
+The download and release links on this page point to upstream Orca. To run the fork, follow the [local setup guide](.github/CONTRIBUTING.md#local-setup) in this checkout. See [fork maintenance](#fork-maintenance) for how changes land here.
+
 ## Features
 
 <table>
@@ -330,6 +336,38 @@ Want to contribute or run locally? See our [CONTRIBUTING.md](.github/CONTRIBUTIN
 <p align="center">
   <img src="docs/assets/star-history.png" alt="GitHub star history chart for stablyai/orca" width="880" />
 </p>
+
+## Fork maintenance
+
+`origin/main` is the integration branch for `thonra/orca`. It carries both upstream updates and fork changes. `upstream/main` tracks `stablyai/orca`. Keep the published history of the fork's `main` intact.
+
+### Fork changes
+
+Start each `feat/*` or `fix/*` branch from the latest `origin/main` and open a focused pull request against the fork's `main`. Describe the user-facing change and how you verified it. For code changes, follow the [contributor checks](.github/CONTRIBUTING.md#checks-before-opening-a-pr) and exercise the workflows you touched.
+
+### Upstream syncs
+
+Review `upstream/main` weekly and prioritize relevant security fixes. Use a dedicated sync branch and pull request. If your clone has only `origin`, add the upstream remote once with `git remote add -t main upstream https://github.com/stablyai/orca.git`.
+
+From a clean checkout, fetch both `main` branches.
+
+```sh
+git fetch origin main
+git fetch upstream main
+```
+
+Skip the sync if `git merge-base --is-ancestor upstream/main origin/main` succeeds. Otherwise, merge upstream into a branch based on the latest fork `main`.
+
+```sh
+git switch --no-track -c "sync/upstream-$(git rev-parse --short upstream/main)" origin/main
+git merge --no-edit upstream/main
+```
+
+Resolve conflicts on the sync branch, run the contributor checks, and smoke-test any affected fork workflows. If upstream now covers a fork patch, verify the behavior before removing the duplicate. Push the sync branch to `origin` and open a pull request against the fork's `main`. Record the upstream commit SHA, conflict resolutions, and validation results. Land the pull request with a merge commit so the original upstream commits are ancestors of the fork's `main`.
+
+### Contributions to upstream
+
+For a fix or improvement that belongs in Orca itself, prepare a focused pull request from a separate branch based on `upstream/main`. Keep fork-specific changes in `thonra/orca`. [Upstream contribution guide](https://github.com/stablyai/orca/blob/main/.github/CONTRIBUTING.md).
 
 ## Signed Builds
 
