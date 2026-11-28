@@ -51,6 +51,8 @@ case "$entrypoint_kind" in
   *) echo "unsupported entrypoint: $entrypoint_kind" >&2; exit 64 ;;
 esac
 
+# The first poll can run before the background shell opens its redirections.
+touch "$stdout_log" "$stderr_log"
 setsid env -u DISPLAY "${entrypoint[@]}" serve --port 0 --pairing-address 127.0.0.1 --json \
   >"$stdout_log" 2>"$stderr_log" &
 app_pid=$!
