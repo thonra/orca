@@ -54,27 +54,13 @@ const baselineSource = (
   )
 ).stdout
 // Both versions inspect this checkout and load the same parser and source inventory.
-const baselineImportPaths = {
-  './check-process-host-imports.mjs':
-    'config/scripts/static-analysis/process-boundaries/check-process-host-imports.mjs',
-  './static-module-specifiers.mjs':
-    'config/scripts/static-analysis/module-requests/static-module-specifiers.mjs',
-  './test-only-source-path.mjs':
-    'config/scripts/static-analysis/process-boundaries/test-only-source-path.mjs'
-}
+// Rebase the checker's relative imports before running its copy from the artifact directory.
 writeFileSync(
   baselinePath,
   baselineSource.replace(
-    /from '(\.\/[^']+)'/g,
+    /from '(\.{1,2}\/[^']+)'/g,
     (_, specifier) =>
-      `from '${
-        pathToFileURL(
-          path.resolve(
-            root,
-            baselineImportPaths[specifier] ?? path.posix.join('config/scripts', specifier)
-          )
-        ).href
-      }'`
+      `from '${pathToFileURL(path.resolve(root, path.dirname(sourcePath), specifier)).href}'`
   )
 )
 const arms = {

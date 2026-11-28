@@ -17,6 +17,8 @@ jobs:
         if: github.event.action == 'synchronize' || github.event.pull_request.merged == false
         uses: actions/github-script@v8
         with:
+          retries: 3
+          retry-exempt-status-codes: 400,401,403,404,409,422
           script: |
             const pr = context.payload.pull_request
             const superseded = context.payload.action === 'synchronize'

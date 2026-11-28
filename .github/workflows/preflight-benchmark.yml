@@ -4,7 +4,7 @@ on:
     types: [opened, synchronize, reopened, ready_for_review, converted_to_draft]
     paths:
       - .github/workflows/preflight-benchmark.yml
-      - config/scripts/benchmark-preflight-*.mjs
+      - config/scripts/preflight/benchmarks/benchmark-preflight-*.mjs
       - config/scripts/preflight/benchmarks/preflight-benchmark-command.mjs
   workflow_dispatch:
 permissions:
